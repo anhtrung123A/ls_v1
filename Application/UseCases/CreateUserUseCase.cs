@@ -10,11 +10,16 @@ public class CreateUserUseCase
 {
     private readonly IUserRepository _userRepository;
     private readonly IAuthUserService _authUserService;
+    private readonly IEmailService _emailService;
 
-    public CreateUserUseCase(IUserRepository userRepository, IAuthUserService authUserService)
+    public CreateUserUseCase(
+        IUserRepository userRepository,
+        IAuthUserService authUserService,
+        IEmailService emailService)
     {
         _userRepository = userRepository;
         _authUserService = authUserService;
+        _emailService = emailService;
     }
 
     public async Task<UserDto> ExecuteAsync(CreateUserDto dto, CancellationToken cancellationToken = default)
@@ -44,13 +49,25 @@ public class CreateUserUseCase
             DateOfBirth = dto.DateOfBirth
         };
 
-        await _authUserService.CreateUserAsync(new CreateAuthUserRequestDto
+        var authResponse = await _authUserService.CreateUserAsync(new CreateAuthUserRequestDto
         {
             LoginId = user.Email,
             RegisteredAtUtc = DateTime.UtcNow,
             RegisteredByEmail = user.Email,
             UpdatedByEmail = user.Email
         }, cancellationToken);
+
+        var generatedPassword = authResponse.Data?.GeneratedPassword;
+        if (string.IsNullOrWhiteSpace(generatedPassword))
+        {
+            throw new InvalidOperationException(AppErrors.External.AuthGeneratedPasswordMissing);
+        }
+
+        await _emailService.SendUserCreatedPasswordEmailAsync(
+            user.Email,
+            user.Fullname,
+            generatedPassword,
+            cancellationToken);
 
         await _userRepository.AddAsync(user, cancellationToken);
 

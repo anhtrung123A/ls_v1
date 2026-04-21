@@ -4,5 +4,5 @@ namespace app.Domain.Interfaces;
 
 public interface IAuthUserService
 {
-    Task CreateUserAsync(CreateAuthUserRequestDto request, CancellationToken cancellationToken = default);
+    Task<CreateAuthUserResponseDto> CreateUserAsync(CreateAuthUserRequestDto request, CancellationToken cancellationToken = default);
 }

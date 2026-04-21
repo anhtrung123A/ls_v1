@@ -1,4 +1,5 @@
 using app.Application.DTOs.Auth;
+using app.Application.Errors;
 using app.Domain.Constants;
 using app.Domain.Interfaces;
 using app.Infrastructure.Configurations;
@@ -17,10 +18,17 @@ public class AuthUserService : IAuthUserService
         _options = options.Value;
     }
 
-    public async Task CreateUserAsync(CreateAuthUserRequestDto request, CancellationToken cancellationToken = default)
+    public async Task<CreateAuthUserResponseDto> CreateUserAsync(CreateAuthUserRequestDto request, CancellationToken cancellationToken = default)
     {
         var baseUrl = _options.BaseUrl.TrimEnd('/');
         var url = $"{baseUrl}{AuthConstants.CreateUserEndpoint}";
-        await _externalApiClient.PostAsync<CreateAuthUserRequestDto, object>(url, request, cancellationToken);
+        var response = await _externalApiClient.PostAsync<CreateAuthUserRequestDto, CreateAuthUserResponseDto>(url, request, cancellationToken);
+
+        if (response is null || response.Data is null)
+        {
+            throw new HttpRequestException(AppErrors.External.AuthServiceCallFailed);
+        }
+
+        return response;
     }
 }

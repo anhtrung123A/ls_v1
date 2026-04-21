@@ -20,9 +20,15 @@ builder.Services
     .Bind(builder.Configuration.GetSection(AuthServiceOptions.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
+builder.Services
+    .AddOptions<SmtpOptions>()
+    .Bind(builder.Configuration.GetSection(SmtpOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
 builder.Services.AddHttpClient<IExternalApiClient, ExternalApiClient>();
 builder.Services.AddScoped<IAuthUserService, AuthUserService>();
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<CreateUserUseCase>();
 builder.Services.AddDbContext<AppDbContext>(options =>

@@ -12,6 +12,7 @@ public static class AppErrors
     public static class External
     {
         public const string AuthServiceCallFailed = "Failed to call auth service.";
+        public const string AuthGeneratedPasswordMissing = "Auth service did not return generated password.";
     }
 
     public static class System
