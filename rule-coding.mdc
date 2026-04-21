@@ -1,0 +1,141 @@
+# AI Coding Rules - v1 ASP.NET API
+
+## 1. Architecture
+
+Project follows clean architecture in a single solution:
+
+```
+API -> Application -> Domain
+        ^
+Infrastructure --------|
+```
+
+### Layer responsibilities
+
+- **Domain**: entities, interfaces, constants; no EF/ASP.NET/HTTP dependencies.
+- **Application**: DTOs, validators, use cases; orchestrates business flow only.
+- **Infrastructure**: EF Core persistence, repository implementations, external API clients.
+- **API**: endpoint mapping and middleware only; no business logic.
+
+---
+
+## 2. Folder Conventions
+
+```
+/API
+  /Middlewares
+
+/Application
+  /DTOs
+    /Responses
+  /UseCases
+  /Validators
+
+/Domain
+  /Constants
+  /Entities
+  /Interfaces
+
+/Infrastructure
+  /ExternalServices
+  /Persistence
+    /Migrations
+  /Repositories
+```
+
+---
+
+## 3. Mandatory Rules
+
+### 3.1 API versioning and route prefix
+
+- All public endpoints must be under `/api/v1`.
+- Use `MapGroup("/api/v1")` for grouping.
+
+### 3.2 UseCase is the business entrypoint
+
+- Each business action = one use case class (example: `CreateUserUseCase`).
+- Endpoint only calls use case and returns response.
+
+### 3.3 Validation with FluentValidation
+
+- Validators must live in `Application/Validators`.
+- Do not hardcode validation in endpoint when validator exists.
+- Register validators via DI in `Program.cs`.
+
+### 3.4 Unified response contract
+
+- All endpoint responses must use `ApiResponse<T>` from `Application/DTOs/Responses`.
+- Success and fail responses must use consistent shape.
+
+### 3.5 Centralized exception handling
+
+- Use `ExceptionMiddleware` in `API/Middlewares`.
+- Endpoint should not duplicate try/catch for domain validation/business conflict exceptions.
+
+### 3.6 No magic numbers
+
+- Numeric constants (max lengths, limits, etc.) must be defined in `Domain/Constants`.
+- Example: `UserConstants.EmailMaxLength`, `UserConstants.PhoneNumberMaxLength`.
+
+### 3.7 Repository abstraction
+
+- Define contracts in `Domain/Interfaces` (example: `IUserRepository`).
+- Implement in `Infrastructure/Repositories`.
+- UseCase depends on interface, never on `DbContext` directly.
+
+### 3.8 External API calls
+
+- External HTTP integration must go through `Infrastructure/ExternalServices`.
+- Expose abstraction in `Domain/Interfaces` (example: `IExternalApiClient`).
+
+### 3.9 EF Core and migrations
+
+- Schema changes must be managed by EF Core migrations only.
+- Do not create table/database manually in runtime startup code.
+- Migration commands are run via container `v1`.
+
+---
+
+## 4. DI Rules (`Program.cs`)
+
+Always register:
+
+- `DbContext`
+- Repository interfaces + implementations
+- Use cases
+- External API clients (`AddHttpClient`)
+- FluentValidation validators
+- Exception middleware in pipeline
+
+---
+
+## 5. Forbidden Anti-Patterns
+
+- Business logic in endpoint or middleware.
+- Direct `DbContext` usage in API layer.
+- Hardcoded max-length values in validators or EF mapping.
+- Inconsistent response structure between endpoints.
+- Runtime SQL table creation in `Program.cs`.
+
+---
+
+## 6. Implementation Checklist for New Feature
+
+When adding a new API feature, create/update in this order:
+
+1. Domain entity/constants/interfaces
+2. Application DTOs and validator
+3. Use case
+4. Infrastructure repository/service implementation
+5. Endpoint under `/api/v1`
+6. Migration (if schema changed)
+7. DI registrations in `Program.cs`
+
+---
+
+## 7. Design Principles
+
+- Keep code minimal and explicit.
+- Prefer clear naming over clever abstractions.
+- Inner layers must not depend on outer layers.
