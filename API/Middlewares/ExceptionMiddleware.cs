@@ -1,4 +1,5 @@
 using System.Text.Json;
+using app.Application.Errors;
 using app.Application.DTOs.Responses;
 
 namespace app.API.Middlewares;
@@ -30,10 +31,15 @@ public class ExceptionMiddleware
             _logger.LogWarning(ex, "Business rule conflict");
             await WriteErrorResponse(context, StatusCodes.Status409Conflict, ex.Message);
         }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "External service error");
+            await WriteErrorResponse(context, StatusCodes.Status502BadGateway, AppErrors.External.AuthServiceCallFailed);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unhandled exception");
-            await WriteErrorResponse(context, StatusCodes.Status500InternalServerError, "Internal server error.");
+            await WriteErrorResponse(context, StatusCodes.Status500InternalServerError, AppErrors.System.InternalServerError);
         }
     }
 

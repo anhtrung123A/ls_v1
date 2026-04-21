@@ -95,6 +95,13 @@ Infrastructure --------|
 - Do not create table/database manually in runtime startup code.
 - Migration commands are run via container `v1`.
 
+### 3.10 Transaction for all write logic
+
+- All write operations (`create/update/delete`) must be wrapped in a database transaction.
+- Transaction boundary should be handled in Infrastructure (repository/unit-of-work level), not in API endpoint.
+- If a use case performs multiple write steps, all steps must succeed or rollback together.
+- On transaction failure, throw exception and let `ExceptionMiddleware` return unified error response.
+
 ---
 
 ## 4. DI Rules (`Program.cs`)

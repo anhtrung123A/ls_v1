@@ -5,6 +5,7 @@ using app.Application.UseCases;
 using app.Application.Validators;
 using app.Domain.Interfaces;
 using FluentValidation;
+using app.Infrastructure.Configurations;
 using app.Infrastructure.ExternalServices;
 using app.Infrastructure.Persistence;
 using app.Infrastructure.Repositories;
@@ -14,8 +15,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services
+    .AddOptions<AuthServiceOptions>()
+    .Bind(builder.Configuration.GetSection(AuthServiceOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
 builder.Services.AddHttpClient<IExternalApiClient, ExternalApiClient>();
+builder.Services.AddScoped<IAuthUserService, AuthUserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<CreateUserUseCase>();
 builder.Services.AddDbContext<AppDbContext>(options =>
