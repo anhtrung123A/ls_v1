@@ -4,7 +4,7 @@ public interface IEmailService
 {
     Task SendUserCreatedPasswordEmailAsync(
         string toEmail,
-        string fullname,
+        string fullName,
         string generatedPassword,
         CancellationToken cancellationToken = default);
 }

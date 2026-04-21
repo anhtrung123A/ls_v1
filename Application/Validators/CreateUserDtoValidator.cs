@@ -8,9 +8,9 @@ public class CreateUserDtoValidator : AbstractValidator<CreateUserDto>
 {
     public CreateUserDtoValidator()
     {
-        RuleFor(x => x.Fullname)
+        RuleFor(x => x.Lastname)
             .NotEmpty()
-            .MaximumLength(UserConstants.FullnameMaxLength);
+            .MaximumLength(UserConstants.LastnameMaxLength);
 
         RuleFor(x => x.Firstname)
             .MaximumLength(UserConstants.FirstnameMaxLength);

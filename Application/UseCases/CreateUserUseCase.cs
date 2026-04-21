@@ -24,9 +24,9 @@ public class CreateUserUseCase
 
     public async Task<UserDto> ExecuteAsync(CreateUserDto dto, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(dto.Fullname))
+        if (string.IsNullOrWhiteSpace(dto.Lastname))
         {
-            throw new ArgumentException(AppErrors.User.FullnameRequired);
+            throw new ArgumentException(AppErrors.User.LastnameRequired);
         }
 
         if (string.IsNullOrWhiteSpace(dto.Email))
@@ -42,8 +42,8 @@ public class CreateUserUseCase
 
         var user = new User
         {
-            Fullname = dto.Fullname.Trim(),
             Firstname = dto.Firstname?.Trim(),
+            Lastname = dto.Lastname.Trim(),
             Email = dto.Email.Trim(),
             Phonenumber = dto.Phonenumber?.Trim(),
             DateOfBirth = dto.DateOfBirth
@@ -65,7 +65,7 @@ public class CreateUserUseCase
 
         await _emailService.SendUserCreatedPasswordEmailAsync(
             user.Email,
-            user.Fullname,
+            CombineFullName(user.Firstname, user.Lastname),
             generatedPassword,
             cancellationToken);
 
@@ -74,13 +74,19 @@ public class CreateUserUseCase
         return new UserDto
         {
             Id = user.Id,
-            Fullname = user.Fullname,
             Firstname = user.Firstname,
+            Lastname = user.Lastname,
             Email = user.Email,
             Phonenumber = user.Phonenumber,
             DateOfBirth = user.DateOfBirth,
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt
         };
+    }
+
+    private static string CombineFullName(string? firstName, string lastName)
+    {
+        return string.Join(" ", new[] { firstName?.Trim(), lastName.Trim() }
+            .Where(x => !string.IsNullOrWhiteSpace(x)));
     }
 }

@@ -4,7 +4,7 @@ public static class AppErrors
 {
     public static class User
     {
-        public const string FullnameRequired = "Fullname is required.";
+        public const string LastnameRequired = "Lastname is required.";
         public const string EmailRequired = "Email is required.";
         public const string EmailAlreadyExists = "Email already exists.";
     }

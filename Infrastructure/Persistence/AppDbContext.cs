@@ -23,14 +23,14 @@ public class AppDbContext : DbContext
                 .HasColumnName("id")
                 .ValueGeneratedOnAdd();
 
-            entity.Property(e => e.Fullname)
-                .HasColumnName("fullname")
-                .HasMaxLength(UserConstants.FullnameMaxLength)
-                .IsRequired();
-
             entity.Property(e => e.Firstname)
                 .HasColumnName("firstname")
                 .HasMaxLength(UserConstants.FirstnameMaxLength);
+
+            entity.Property(e => e.Lastname)
+                .HasColumnName("lastname")
+                .HasMaxLength(UserConstants.LastnameMaxLength)
+                .IsRequired();
 
             entity.Property(e => e.Email)
                 .HasColumnName("email")

@@ -18,13 +18,13 @@ public class SmtpEmailService : IEmailService
 
     public async Task SendUserCreatedPasswordEmailAsync(
         string toEmail,
-        string fullname,
+        string fullName,
         string generatedPassword,
         CancellationToken cancellationToken = default)
     {
         var template = await LoadTemplateAsync(cancellationToken);
         var htmlBody = template
-            .Replace("{{Fullname}}", WebUtility.HtmlEncode(fullname))
+            .Replace("{{FullName}}", WebUtility.HtmlEncode(fullName))
             .Replace("{{Email}}", WebUtility.HtmlEncode(toEmail))
             .Replace("{{GeneratedPassword}}", WebUtility.HtmlEncode(generatedPassword));
 

@@ -23,6 +23,7 @@ Infrastructure --------|
 
 ```
 /API
+  /Controllers
   /Middlewares
 
 /Application
@@ -37,10 +38,13 @@ Infrastructure --------|
   /Interfaces
 
 /Infrastructure
+  /Configurations
   /ExternalServices
   /Persistence
     /Migrations
   /Repositories
+
+/MailTemplates
 ```
 
 ---
@@ -49,8 +53,9 @@ Infrastructure --------|
 
 ### 3.1 API versioning and route prefix
 
-- All public endpoints must be under `/api/v1`.
-- Use `MapGroup("/api/v1")` for grouping.
+- Use `Asp.Versioning.Mvc` for API versioning.
+- Controllers must declare `[ApiVersion("1.0")]`.
+- Versioned routes must use URL segment pattern: `api/v{version:apiVersion}/...`.
 
 ### 3.2 UseCase is the business entrypoint
 
@@ -60,8 +65,11 @@ Infrastructure --------|
 ### 3.3 Validation with FluentValidation
 
 - Validators must live in `Application/Validators`.
-- Do not hardcode validation in endpoint when validator exists.
-- Register validators via DI in `Program.cs`.
+- Do not write manual validation logic in controllers.
+- Use automatic validation pipeline:
+  - `AddValidatorsFromAssemblyContaining<...>()`
+  - `AddFluentValidationAutoValidation()`
+- Validation error response must be field-level (`Dictionary<string, string[]>`), not `string.Join`.
 
 ### 3.4 Unified response contract
 
@@ -88,6 +96,7 @@ Infrastructure --------|
 
 - External HTTP integration must go through `Infrastructure/ExternalServices`.
 - Expose abstraction in `Domain/Interfaces` (example: `IExternalApiClient`).
+- Service endpoint/base URL must come from configuration (Options pattern), not hardcoded.
 
 ### 3.9 EF Core and migrations
 
@@ -102,6 +111,22 @@ Infrastructure --------|
 - If a use case performs multiple write steps, all steps must succeed or rollback together.
 - On transaction failure, throw exception and let `ExceptionMiddleware` return unified error response.
 
+### 3.11 Email delivery and templates
+
+- SMTP settings must be read from config/env via options class in `Infrastructure/Configurations`.
+- Email sending must go through abstraction in `Domain/Interfaces` and implementation in `Infrastructure/ExternalServices`.
+- Email body templates must be stored in `/MailTemplates` (no hardcoded long HTML in use case/controller).
+- Sensitive data (e.g. generated password) must be delivered through email flow, not logged.
+
+### 3.12 Controller responsibilities
+
+- Controllers must live in `API/Controllers`, not in `Program.cs`.
+- Controller should only:
+  - Receive request
+  - Call use case
+  - Return response
+- Dependencies should use constructor injection (avoid `[FromServices]` in action parameters unless truly necessary).
+
 ---
 
 ## 4. DI Rules (`Program.cs`)
@@ -113,6 +138,8 @@ Always register:
 - Use cases
 - External API clients (`AddHttpClient`)
 - FluentValidation validators
+- API versioning configuration
+- Options binding for external services (`Auth`, `Smtp`, etc.)
 - Exception middleware in pipeline
 
 ---
@@ -124,6 +151,9 @@ Always register:
 - Hardcoded max-length values in validators or EF mapping.
 - Inconsistent response structure between endpoints.
 - Runtime SQL table creation in `Program.cs`.
+- Manual validation blocks repeated in controllers.
+- Hardcoded external service base URL in code.
+- Logging plaintext generated passwords.
 
 ---
 
@@ -135,9 +165,9 @@ When adding a new API feature, create/update in this order:
 2. Application DTOs and validator
 3. Use case
 4. Infrastructure repository/service implementation
-5. Endpoint under `/api/v1`
+5. Controller endpoint under versioned route `api/v{version:apiVersion}/...`
 6. Migration (if schema changed)
-7. DI registrations in `Program.cs`
+7. Add/update config options + DI registrations in `Program.cs`
 
 ---
 
