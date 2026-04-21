@@ -1,20 +1,45 @@
 using app.API.Middlewares;
-using app.Application.DTOs;
 using app.Application.DTOs.Responses;
 using app.Application.UseCases;
 using app.Application.Validators;
+using Asp.Versioning;
 using app.Domain.Interfaces;
 using FluentValidation;
+using FluentValidation.AspNetCore;
 using app.Infrastructure.Configurations;
 using app.Infrastructure.ExternalServices;
 using app.Infrastructure.Persistence;
 using app.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+    options.ApiVersionReader = new UrlSegmentApiVersionReader();
+});
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Where(x => x.Value?.Errors.Count > 0)
+            .ToDictionary(
+                x => x.Key,
+                x => x.Value!.Errors.Select(e => e.ErrorMessage).ToArray());
+
+        var response = ApiResponse<Dictionary<string, string[]>>.Fail("Validation failed.");
+        response.Data = errors;
+        return new BadRequestObjectResult(response);
+    };
+});
 builder.Services
     .AddOptions<AuthServiceOptions>()
     .Bind(builder.Configuration.GetSection(AuthServiceOptions.SectionName))
@@ -26,6 +51,7 @@ builder.Services
     .ValidateDataAnnotations()
     .ValidateOnStart();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
+builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddHttpClient<IExternalApiClient, ExternalApiClient>();
 builder.Services.AddScoped<IAuthUserService, AuthUserService>();
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
@@ -50,26 +76,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-var apiV1 = app.MapGroup("/api/v1");
-
-apiV1.MapPost("/users", async (
-    CreateUserDto dto,
-    IValidator<CreateUserDto> validator,
-    CreateUserUseCase useCase,
-    CancellationToken cancellationToken) =>
-{
-    var validationResult = await validator.ValidateAsync(dto, cancellationToken);
-    if (!validationResult.IsValid)
-    {
-        var errors = validationResult.Errors.Select(x => x.ErrorMessage).ToArray();
-        return Results.BadRequest(ApiResponse<string[]>.Fail(string.Join("; ", errors)));
-    }
-
-    var user = await useCase.ExecuteAsync(dto, cancellationToken);
-    return Results.Created($"/api/v1/users/{user.Id}", ApiResponse<UserDto>.Ok(user, "User created successfully."));
-})
-.WithName("CreateUser")
-.WithOpenApi();
+app.MapControllers();
 
 app.Run();
