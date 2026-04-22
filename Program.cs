@@ -1,5 +1,6 @@
 using app.API.Middlewares;
 using app.Application.DTOs.Responses;
+using app.Application.Errors;
 using app.Application.UseCases;
 using app.Application.Validators;
 using Asp.Versioning;
@@ -10,13 +11,44 @@ using app.Infrastructure.Configurations;
 using app.Infrastructure.ExternalServices;
 using app.Infrastructure.Persistence;
 using app.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Input JWT token. Example: Bearer {your token}"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 builder.Services.AddControllers();
 builder.Services.AddApiVersioning(options =>
 {
@@ -50,6 +82,59 @@ builder.Services
     .Bind(builder.Configuration.GetSection(SmtpOptions.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
+builder.Services
+    .AddOptions<JwtOptions>()
+    .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+var jwtSecret = builder.Configuration[$"{JwtOptions.SectionName}:Secret"]
+    ?? throw new InvalidOperationException("Jwt:Secret is not configured.");
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = signingKey,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnAuthenticationFailed = context =>
+            {
+                context.HttpContext.Items["AuthErrorMessage"] = context.Exception is SecurityTokenExpiredException
+                    ? AppErrors.Auth.TokenExpired
+                    : AppErrors.Auth.TokenInvalid;
+
+                return Task.CompletedTask;
+            },
+            OnChallenge = async context =>
+            {
+                context.HandleResponse();
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.ContentType = "application/json";
+
+                var message = context.HttpContext.Items.TryGetValue("AuthErrorMessage", out var authError)
+                    && authError is string authErrorMessage
+                    ? authErrorMessage
+                    : AppErrors.Auth.Unauthorized;
+
+                var response = ApiResponse<object>.Fail(message);
+                await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+            }
+        };
+    });
+
+builder.Services.AddAuthorization();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddHttpClient<IExternalApiClient, ExternalApiClient>();
@@ -57,6 +142,7 @@ builder.Services.AddScoped<IAuthUserService, AuthUserService>();
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<CreateUserUseCase>();
+builder.Services.AddScoped<GetUserProfileUseCase>();
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("Default")
@@ -76,6 +162,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

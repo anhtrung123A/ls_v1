@@ -31,6 +31,16 @@ public class ExceptionMiddleware
             _logger.LogWarning(ex, "Business rule conflict");
             await WriteErrorResponse(context, StatusCodes.Status409Conflict, ex.Message);
         }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning(ex, "Unauthorized access");
+            await WriteErrorResponse(context, StatusCodes.Status401Unauthorized, ex.Message);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Resource not found");
+            await WriteErrorResponse(context, StatusCodes.Status404NotFound, ex.Message);
+        }
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "External service error");
