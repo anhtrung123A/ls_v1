@@ -14,13 +14,19 @@ public class UsersController : ControllerBase
 {
     private readonly CreateUserUseCase _createUserUseCase;
     private readonly GetUserProfileUseCase _getUserProfileUseCase;
+    private readonly UpsertUserAvatarUseCase _upsertUserAvatarUseCase;
+    private readonly DeleteUserAvatarUseCase _deleteUserAvatarUseCase;
 
     public UsersController(
         CreateUserUseCase createUserUseCase,
-        GetUserProfileUseCase getUserProfileUseCase)
+        GetUserProfileUseCase getUserProfileUseCase,
+        UpsertUserAvatarUseCase upsertUserAvatarUseCase,
+        DeleteUserAvatarUseCase deleteUserAvatarUseCase)
     {
         _createUserUseCase = createUserUseCase;
         _getUserProfileUseCase = getUserProfileUseCase;
+        _upsertUserAvatarUseCase = upsertUserAvatarUseCase;
+        _deleteUserAvatarUseCase = deleteUserAvatarUseCase;
     }
 
     [HttpPost]
@@ -38,5 +44,33 @@ public class UsersController : ControllerBase
     {
         var profile = await _getUserProfileUseCase.ExecuteAsync(User, cancellationToken);
         return Ok(ApiResponse<UserProfileDto>.Ok(profile, "User profile fetched successfully."));
+    }
+
+    [Authorize]
+    [HttpPost("avatar")]
+    public async Task<IActionResult> UploadAvatar(
+        [FromForm] UploadUserAvatarDto dto,
+        CancellationToken cancellationToken)
+    {
+        var avatar = await _upsertUserAvatarUseCase.ExecuteAsync(User, dto.Avatar, cancellationToken);
+        return Ok(ApiResponse<UserAvatarDto>.Ok(avatar, "User avatar uploaded successfully."));
+    }
+
+    [Authorize]
+    [HttpPut("avatar")]
+    public async Task<IActionResult> EditAvatar(
+        [FromForm] UploadUserAvatarDto dto,
+        CancellationToken cancellationToken)
+    {
+        var avatar = await _upsertUserAvatarUseCase.ExecuteAsync(User, dto.Avatar, cancellationToken);
+        return Ok(ApiResponse<UserAvatarDto>.Ok(avatar, "User avatar updated successfully."));
+    }
+
+    [Authorize]
+    [HttpDelete("avatar")]
+    public async Task<IActionResult> DeleteAvatar(CancellationToken cancellationToken)
+    {
+        var result = await _deleteUserAvatarUseCase.ExecuteAsync(User, cancellationToken);
+        return Ok(ApiResponse<DeleteUserAvatarResultDto>.Ok(result, "User avatar deleted successfully."));
     }
 }

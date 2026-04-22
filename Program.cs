@@ -158,6 +158,8 @@ builder.Services.AddScoped<IFileStorageService, MinioFileStorageService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<CreateUserUseCase>();
 builder.Services.AddScoped<GetUserProfileUseCase>();
+builder.Services.AddScoped<UpsertUserAvatarUseCase>();
+builder.Services.AddScoped<DeleteUserAvatarUseCase>();
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("Default")

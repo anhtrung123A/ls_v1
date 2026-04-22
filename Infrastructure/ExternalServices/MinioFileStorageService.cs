@@ -54,6 +54,15 @@ public class MinioFileStorageService : IFileStorageService
         };
     }
 
+    public async Task DeleteAsync(string objectKey, CancellationToken cancellationToken = default)
+    {
+        await _minioClient.RemoveObjectAsync(
+            new RemoveObjectArgs()
+                .WithBucket(_options.Bucket)
+                .WithObject(objectKey),
+            cancellationToken);
+    }
+
     private async Task EnsureBucketExistsAsync(CancellationToken cancellationToken)
     {
         var bucketExists = await _minioClient.BucketExistsAsync(
