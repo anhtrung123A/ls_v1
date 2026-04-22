@@ -57,20 +57,31 @@ public class UserRepository : IUserRepository
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken)
-                ?? throw new KeyNotFoundException("User not found.");
+            var currentAvatarFileId = await _dbContext.Users
+                .Where(x => x.Id == userId)
+                .Select(x => x.AvatarFileId)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            var userExists = await _dbContext.Users.AnyAsync(x => x.Id == userId, cancellationToken);
+            if (!userExists)
+            {
+                throw new KeyNotFoundException("User not found.");
+            }
 
             FileEntity? previousAvatar = null;
-            if (user.AvatarFileId.HasValue)
+            if (currentAvatarFileId.HasValue)
             {
                 previousAvatar = await _dbContext.Files
-                    .FirstOrDefaultAsync(x => x.Id == user.AvatarFileId.Value && x.DeletedAt == null, cancellationToken);
+                    .FirstOrDefaultAsync(x => x.Id == currentAvatarFileId.Value && x.DeletedAt == null, cancellationToken);
             }
 
             _dbContext.Files.Add(newAvatar);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
-            user.AvatarFileId = newAvatar.Id;
+            await _dbContext.Users
+                .Where(x => x.Id == userId)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.AvatarFileId, newAvatar.Id), cancellationToken);
 
             if (previousAvatar is not null)
             {
@@ -91,22 +102,32 @@ public class UserRepository : IUserRepository
 
     public async Task<FileEntity?> RemoveAvatarAsync(ulong userId, CancellationToken cancellationToken = default)
     {
+        var avatarFileId = await _dbContext.Users
+            .Where(x => x.Id == userId)
+            .Select(x => x.AvatarFileId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var userExists = await _dbContext.Users.AnyAsync(x => x.Id == userId, cancellationToken);
+        if (!userExists)
+        {
+            throw new KeyNotFoundException("User not found.");
+        }
+
+        if (!avatarFileId.HasValue)
+        {
+            return null;
+        }
+
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
         try
         {
-            var user = await _dbContext.Users.FirstOrDefaultAsync(x => x.Id == userId, cancellationToken)
-                ?? throw new KeyNotFoundException("User not found.");
-
-            if (!user.AvatarFileId.HasValue)
-            {
-                await transaction.CommitAsync(cancellationToken);
-                return null;
-            }
-
             var existingAvatar = await _dbContext.Files
-                .FirstOrDefaultAsync(x => x.Id == user.AvatarFileId.Value && x.DeletedAt == null, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == avatarFileId.Value && x.DeletedAt == null, cancellationToken);
 
-            user.AvatarFileId = null;
+            await _dbContext.Users
+                .Where(x => x.Id == userId)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.AvatarFileId, (ulong?)null), cancellationToken);
 
             if (existingAvatar is not null)
             {
