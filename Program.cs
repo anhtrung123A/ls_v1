@@ -96,6 +96,11 @@ builder.Services
     .Bind(builder.Configuration.GetSection(JwtOptions.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
+builder.Services
+    .AddOptions<StorageOptions>()
+    .Bind(builder.Configuration.GetSection(StorageOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 var jwtSecret = builder.Configuration[$"{JwtOptions.SectionName}:Secret"]
     ?? throw new InvalidOperationException("Jwt:Secret is not configured.");
@@ -149,6 +154,7 @@ builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddHttpClient<IExternalApiClient, ExternalApiClient>();
 builder.Services.AddScoped<IAuthUserService, AuthUserService>();
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+builder.Services.AddScoped<IFileStorageService, MinioFileStorageService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<CreateUserUseCase>();
 builder.Services.AddScoped<GetUserProfileUseCase>();
