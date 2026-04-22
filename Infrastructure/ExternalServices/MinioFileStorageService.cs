@@ -4,6 +4,8 @@ using app.Infrastructure.Configurations;
 using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace app.Infrastructure.ExternalServices;
 
@@ -88,10 +90,20 @@ public class MinioFileStorageService : IFileStorageService
     private static string BuildObjectKey(string? folder, string fileName)
     {
         var safeFileName = Path.GetFileName(fileName);
+        var fileExtension = Path.GetExtension(safeFileName);
+        var hashedFileName = HashFileName(safeFileName);
         var prefix = string.IsNullOrWhiteSpace(folder)
             ? string.Empty
             : $"{folder.Trim().Trim('/').Replace('\\', '/')}/";
 
-        return $"{prefix}{Guid.NewGuid():N}-{safeFileName}";
+        return $"{prefix}{hashedFileName}{fileExtension}";
+    }
+
+    private static string HashFileName(string fileName)
+    {
+        var normalizedName = fileName.Trim().ToLowerInvariant();
+        var entropy = $"{normalizedName}|{Guid.NewGuid():N}|{DateTime.UtcNow.Ticks}";
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(entropy));
+        return Convert.ToHexString(hashBytes).ToLowerInvariant();
     }
 }

@@ -7,10 +7,14 @@ namespace app.Application.UseCases;
 public class GetUserProfileUseCase
 {
     private readonly IUserRepository _userRepository;
+    private readonly IFileUrlResolver _fileUrlResolver;
 
-    public GetUserProfileUseCase(IUserRepository userRepository)
+    public GetUserProfileUseCase(
+        IUserRepository userRepository,
+        IFileUrlResolver fileUrlResolver)
     {
         _userRepository = userRepository;
+        _fileUrlResolver = fileUrlResolver;
     }
 
     public async Task<UserProfileDto> ExecuteAsync(
@@ -19,20 +23,21 @@ public class GetUserProfileUseCase
     {
         var email = UserClaimResolver.GetEmailOrThrow(user);
 
-        var dbUser = await _userRepository.GetByEmailAsync(email, cancellationToken);
-        if (dbUser is null)
+        var userWithAvatar = await _userRepository.GetWithAvatarByEmailAsync(email, cancellationToken);
+        if (userWithAvatar.User is null)
         {
             throw new KeyNotFoundException(AppErrors.User.UserNotFoundByEmail);
         }
 
         return new UserProfileDto
         {
-            Id = dbUser.Id,
-            Firstname = dbUser.Firstname,
-            Lastname = dbUser.Lastname,
-            Email = dbUser.Email,
-            Phonenumber = dbUser.Phonenumber,
-            DateOfBirth = dbUser.DateOfBirth
+            Id = userWithAvatar.User.Id,
+            Firstname = userWithAvatar.User.Firstname,
+            Lastname = userWithAvatar.User.Lastname,
+            Email = userWithAvatar.User.Email,
+            AvatarUrl = _fileUrlResolver.BuildPublicUrl(userWithAvatar.Avatar?.ObjectKey),
+            Phonenumber = userWithAvatar.User.Phonenumber,
+            DateOfBirth = userWithAvatar.User.DateOfBirth
         };
     }
 }

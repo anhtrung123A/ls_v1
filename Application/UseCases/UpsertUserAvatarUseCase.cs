@@ -14,12 +14,15 @@ public class UpsertUserAvatarUseCase
 {
     private readonly IUserRepository _userRepository;
     private readonly IFileStorageService _fileStorageService;
+    private readonly IImageProcessor _imageProcessor;
 
     public UpsertUserAvatarUseCase(
         IUserRepository userRepository,
+        IImageProcessor imageProcessor,
         IFileStorageService fileStorageService)
     {
         _userRepository = userRepository;
+        _imageProcessor = imageProcessor;
         _fileStorageService = fileStorageService;
     }
 
@@ -37,12 +40,16 @@ public class UpsertUserAvatarUseCase
         }
 
         await using var avatarStream = avatar.OpenReadStream();
+        var processedImage = await _imageProcessor.ResizeTo256Async(avatarStream, cancellationToken);
+        await using var processedStream = processedImage.Content;
+        var normalizedFileName = $"{Path.GetFileNameWithoutExtension(avatar.FileName)}.{processedImage.FileExtension}";
+
         var uploadResult = await _fileStorageService.UploadAsync(new StorageUploadRequest
         {
-            Content = avatarStream,
-            Size = avatar.Length,
-            FileName = avatar.FileName,
-            ContentType = avatar.ContentType,
+            Content = processedStream,
+            Size = processedImage.Size,
+            FileName = normalizedFileName,
+            ContentType = processedImage.ContentType,
             Folder = $"{FileConstants.AvatarFolder}/{userWithAvatar.User.Id}"
         }, cancellationToken);
 

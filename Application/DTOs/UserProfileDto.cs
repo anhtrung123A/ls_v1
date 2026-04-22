@@ -6,6 +6,7 @@ public class UserProfileDto
     public string? Firstname { get; set; }
     public string Lastname { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+    public string? AvatarUrl { get; set; }
     public string? Phonenumber { get; set; }
     public DateOnly? DateOfBirth { get; set; }
 }
