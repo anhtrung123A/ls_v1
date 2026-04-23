@@ -10,11 +10,13 @@ namespace app.Application.UseCases;
 public class CreateBranchUseCase
 {
     private readonly IBranchRepository _branchRepository;
+    private readonly IFileUrlResolver _fileUrlResolver;
     private readonly IMapper _mapper;
 
-    public CreateBranchUseCase(IBranchRepository branchRepository, IMapper mapper)
+    public CreateBranchUseCase(IBranchRepository branchRepository, IFileUrlResolver fileUrlResolver, IMapper mapper)
     {
         _branchRepository = branchRepository;
+        _fileUrlResolver = fileUrlResolver;
         _mapper = mapper;
     }
 
@@ -48,6 +50,13 @@ public class CreateBranchUseCase
         };
 
         var created = await _branchRepository.AddAsync(branch, cancellationToken);
-        return _mapper.Map<BranchDto>(created);
+        var result = _mapper.Map<BranchDto>(created);
+        if (created.ImageFileId.HasValue)
+        {
+            var imageObjectKey = await _branchRepository.GetImageObjectKeyByFileIdAsync(created.ImageFileId.Value, cancellationToken);
+            result.ImageUrl = _fileUrlResolver.BuildPublicUrl(imageObjectKey);
+        }
+
+        return result;
     }
 }

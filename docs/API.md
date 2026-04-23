@@ -172,6 +172,226 @@ Base URL: `/api/v1`
 }
 ```
 
+## 6) Create Branch
+- **Method/Path**: `POST /branches`
+- **Auth**: `Bearer JWT` + role `admin` (`roleId = 1`)
+- **Input (JSON body)**:
+```json
+{
+  "name": "Branch HCM 01",
+  "description": "Main campus in Ho Chi Minh city",
+  "addressLine1": "12 Nguyen Trai",
+  "addressLine2": "Floor 3",
+  "ward": "Ben Thanh",
+  "district": "District 1",
+  "city": "Ho Chi Minh",
+  "postalCode": "700000",
+  "country": "Vietnam"
+}
+```
+- **Output**:
+  - `201 Created`: tạo chi nhánh thành công
+  - `400 Bad Request`: thiếu/sai dữ liệu đầu vào
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền admin
+  - `500 Internal Server Error`: lỗi hệ thống
+- **Response mẫu (201)**:
+```json
+{
+  "success": true,
+  "message": "Branch created successfully.",
+  "data": {
+    "id": 1,
+    "name": "Branch HCM 01",
+    "description": "Main campus in Ho Chi Minh city",
+    "addressLine1": "12 Nguyen Trai",
+    "addressLine2": "Floor 3",
+    "ward": "Ben Thanh",
+    "district": "District 1",
+    "city": "Ho Chi Minh",
+    "postalCode": "700000",
+    "country": "Vietnam",
+    "imageUrl": null
+  }
+}
+```
+
+## 7) Get Branch List
+- **Method/Path**: `GET /branches`
+- **Auth**: `Bearer JWT` + role `admin` (`roleId = 1`)
+- **Input**: không có body
+- **Output**:
+  - `200 OK`: lấy danh sách chi nhánh thành công
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền admin
+  - `500 Internal Server Error`: lỗi hệ thống
+- **Response mẫu (200)**:
+```json
+{
+  "success": true,
+  "message": "Branches fetched successfully.",
+  "data": [
+    {
+      "id": 1,
+      "name": "Branch HCM 01",
+      "description": "Main campus in Ho Chi Minh city",
+      "addressLine1": "12 Nguyen Trai",
+      "addressLine2": "Floor 3",
+      "ward": "Ben Thanh",
+      "district": "District 1",
+      "city": "Ho Chi Minh",
+      "postalCode": "700000",
+      "country": "Vietnam",
+      "imageUrl": "http://localhost:9000/app-bucket/branches/1/4ab21f...ce9d.png"
+    }
+  ]
+}
+```
+
+## 8) Get Branch By Id
+- **Method/Path**: `GET /branches/{id}`
+- **Auth**: `Bearer JWT` + role `admin` (`roleId = 1`)
+- **Input**: path param `id` (`long`)
+- **Output**:
+  - `200 OK`: lấy chi nhánh thành công
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền admin
+  - `404 Not Found`: không tìm thấy chi nhánh
+  - `500 Internal Server Error`: lỗi hệ thống
+- **Response mẫu (200)**:
+```json
+{
+  "success": true,
+  "message": "Branch fetched successfully.",
+  "data": {
+    "id": 1,
+    "name": "Branch HCM 01",
+    "description": "Main campus in Ho Chi Minh city",
+    "addressLine1": "12 Nguyen Trai",
+    "addressLine2": "Floor 3",
+    "ward": "Ben Thanh",
+    "district": "District 1",
+    "city": "Ho Chi Minh",
+    "postalCode": "700000",
+    "country": "Vietnam",
+    "imageUrl": "http://localhost:9000/app-bucket/branches/1/4ab21f...ce9d.png"
+  }
+}
+```
+
+## 9) Update Branch
+- **Method/Path**: `PUT /branches/{id}`
+- **Auth**: `Bearer JWT` + role `admin` (`roleId = 1`)
+- **Input**:
+  - path param `id` (`long`)
+  - JSON body cùng shape với create branch
+- **Output**:
+  - `200 OK`: cập nhật chi nhánh thành công
+  - `400 Bad Request`: thiếu/sai dữ liệu đầu vào
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền admin
+  - `404 Not Found`: không tìm thấy chi nhánh
+  - `500 Internal Server Error`: lỗi hệ thống
+- **Response mẫu (200)**:
+```json
+{
+  "success": true,
+  "message": "Branch updated successfully.",
+  "data": {
+    "id": 1,
+    "name": "Branch HCM Central",
+    "description": "Updated branch description",
+    "addressLine1": "100 Le Loi",
+    "addressLine2": null,
+    "ward": "Ben Nghe",
+    "district": "District 1",
+    "city": "Ho Chi Minh",
+    "postalCode": "700000",
+    "country": "Vietnam",
+    "imageUrl": "http://localhost:9000/app-bucket/branches/1/4ab21f...ce9d.png"
+  }
+}
+```
+
+## 10) Delete Branch (Soft Delete)
+- **Method/Path**: `DELETE /branches/{id}`
+- **Auth**: `Bearer JWT` + role `admin` (`roleId = 1`)
+- **Input**: path param `id` (`long`)
+- **Output**:
+  - `200 OK`: xóa mềm chi nhánh thành công
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền admin
+  - `404 Not Found`: không tìm thấy chi nhánh
+  - `500 Internal Server Error`: lỗi hệ thống
+- **Response mẫu (200)**:
+```json
+{
+  "success": true,
+  "message": "Branch deleted successfully.",
+  "data": true
+}
+```
+
+## 11) Upload Branch Image
+- **Method/Path**: `POST /branches/{id}/image`
+- **Auth**: `Bearer JWT` + role `admin` (`roleId = 1`)
+- **Input (`multipart/form-data`)**:
+  - path param `id` (`long`)
+  - `image` (file) - bắt buộc, hỗ trợ `image/jpeg`, `image/png`, `image/webp`
+- **Output**:
+  - `200 OK`: upload ảnh chi nhánh thành công
+  - `400 Bad Request`: thiếu file / sai định dạng / quá dung lượng
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền admin
+  - `404 Not Found`: không tìm thấy chi nhánh
+  - `500 Internal Server Error`: lỗi hệ thống
+- **Response mẫu (200)**:
+```json
+{
+  "success": true,
+  "message": "Branch image uploaded successfully.",
+  "data": {
+    "id": 35,
+    "objectKey": "branches/1/4ab21f...ce9d.png",
+    "url": "http://localhost:9000/app-bucket/branches/1/4ab21f...ce9d.png",
+    "fileName": "branch-image.png",
+    "contentType": "image/png",
+    "size": 62811,
+    "createdAt": "2026-04-23T14:00:00Z"
+  }
+}
+```
+
+## 12) Update Branch Image
+- **Method/Path**: `PUT /branches/{id}/image`
+- **Auth**: `Bearer JWT` + role `admin` (`roleId = 1`)
+- **Input (`multipart/form-data`)**:
+  - path param `id` (`long`)
+  - `image` (file) - bắt buộc
+- **Output**:
+  - `200 OK`: cập nhật ảnh chi nhánh thành công
+  - `400 Bad Request`: thiếu file / sai định dạng / quá dung lượng
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền admin
+  - `404 Not Found`: không tìm thấy chi nhánh
+  - `500 Internal Server Error`: lỗi hệ thống
+- **Response mẫu (200)**:
+```json
+{
+  "success": true,
+  "message": "Branch image updated successfully.",
+  "data": {
+    "id": 36,
+    "objectKey": "branches/1/6f55aa...1290.webp",
+    "url": "http://localhost:9000/app-bucket/branches/1/6f55aa...1290.webp",
+    "fileName": "branch-image.webp",
+    "contentType": "image/webp",
+    "size": 51244,
+    "createdAt": "2026-04-23T14:10:00Z"
+  }
+}
+```
+
 ## Response format chung
 - **Success**:
 ```json

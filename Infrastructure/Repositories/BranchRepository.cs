@@ -113,6 +113,15 @@ public class BranchRepository : IBranchRepository
         }
     }
 
+    public async Task<string?> GetImageObjectKeyByFileIdAsync(ulong fileId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Files
+            .AsNoTracking()
+            .Where(x => x.Id == fileId)
+            .Select(x => x.ObjectKey)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<FileEntity?> UpsertImageAsync(
         ulong branchId,
         FileEntity newImage,

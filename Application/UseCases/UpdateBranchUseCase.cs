@@ -9,11 +9,13 @@ namespace app.Application.UseCases;
 public class UpdateBranchUseCase
 {
     private readonly IBranchRepository _branchRepository;
+    private readonly IFileUrlResolver _fileUrlResolver;
     private readonly IMapper _mapper;
 
-    public UpdateBranchUseCase(IBranchRepository branchRepository, IMapper mapper)
+    public UpdateBranchUseCase(IBranchRepository branchRepository, IFileUrlResolver fileUrlResolver, IMapper mapper)
     {
         _branchRepository = branchRepository;
+        _fileUrlResolver = fileUrlResolver;
         _mapper = mapper;
     }
 
@@ -52,6 +54,13 @@ public class UpdateBranchUseCase
             throw new KeyNotFoundException(AppErrors.Branch.NotFound);
         }
 
-        return _mapper.Map<BranchDto>(updated);
+        var result = _mapper.Map<BranchDto>(updated);
+        if (updated.ImageFileId.HasValue)
+        {
+            var imageObjectKey = await _branchRepository.GetImageObjectKeyByFileIdAsync(updated.ImageFileId.Value, cancellationToken);
+            result.ImageUrl = _fileUrlResolver.BuildPublicUrl(imageObjectKey);
+        }
+
+        return result;
     }
 }
