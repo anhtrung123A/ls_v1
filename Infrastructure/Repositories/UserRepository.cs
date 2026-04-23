@@ -15,11 +15,49 @@ public class UserRepository : IUserRepository
         _dbContext = dbContext;
     }
 
+    public Task<User?> GetByIdAsync(ulong id, CancellationToken cancellationToken = default)
+    {
+        return _dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+
     public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         return _dbContext.Users
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<User>> GetByIdsAsync(IEnumerable<ulong> ids, CancellationToken cancellationToken = default)
+    {
+        var userIds = ids.Distinct().ToArray();
+        if (userIds.Length == 0)
+        {
+            return [];
+        }
+
+        return await _dbContext.Users
+            .AsNoTracking()
+            .Where(x => userIds.Contains(x.Id))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyDictionary<ulong, string>> GetFileObjectKeysByIdsAsync(IEnumerable<ulong> fileIds, CancellationToken cancellationToken = default)
+    {
+        var ids = fileIds.Distinct().ToArray();
+        if (ids.Length == 0)
+        {
+            return new Dictionary<ulong, string>();
+        }
+
+        var items = await _dbContext.Files
+            .AsNoTracking()
+            .Where(x => ids.Contains(x.Id))
+            .Select(x => new { x.Id, x.ObjectKey })
+            .ToListAsync(cancellationToken);
+
+        return items.ToDictionary(x => x.Id, x => x.ObjectKey);
     }
 
     public async Task AddAsync(User user, CancellationToken cancellationToken = default)
@@ -28,6 +66,43 @@ public class UserRepository : IUserRepository
         try
         {
             _dbContext.Users.Add(user);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
+
+    public async Task AssignRoleAsync(ulong userId, ulong roleId, ulong? createdByUserId, CancellationToken cancellationToken = default)
+    {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var exists = await _dbContext.UserRoles
+                .AsNoTracking()
+                .AnyAsync(x => x.UserId == userId && x.RoleId == roleId, cancellationToken);
+
+            if (exists)
+            {
+                await transaction.CommitAsync(cancellationToken);
+                return;
+            }
+
+            var now = DateTime.UtcNow;
+            _dbContext.UserRoles.Add(new UserRole
+            {
+                UserId = userId,
+                RoleId = roleId,
+                AssignedAt = now,
+                CreatedAt = now,
+                UpdatedAt = now,
+                CreatedByUserId = createdByUserId,
+                UpdatedByUserId = createdByUserId
+            });
+
             await _dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }

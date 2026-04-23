@@ -16,6 +16,7 @@ public class AppDbContext : DbContext
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<Branch> Branches => Set<Branch>();
+    public DbSet<BranchUser> BranchUsers => Set<BranchUser>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -306,6 +307,68 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.ImageFileId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<BranchUser>(entity =>
+        {
+            entity.ToTable("branch_users");
+            entity.HasKey(e => e.Id);
+            entity.HasQueryFilter(e => e.DeletedAt == null);
+
+            entity.Property(e => e.Id)
+                .HasColumnName("id")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.UserId)
+                .HasColumnName("user_id");
+
+            entity.Property(e => e.BranchId)
+                .HasColumnName("branch_id");
+
+            entity.Property(e => e.Status)
+                .HasColumnName("status")
+                .HasDefaultValue(BranchUserStatusConstants.Active);
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)");
+
+            entity.Property(e => e.CreatedByUserId)
+                .HasColumnName("created_by_user_id");
+
+            entity.Property(e => e.UpdatedByUserId)
+                .HasColumnName("updated_by_user_id");
+
+            entity.Property(e => e.DeletedAt)
+                .HasColumnName("deleted_at")
+                .HasColumnType("datetime(6)");
+
+            entity.HasIndex(e => e.BranchId)
+                .HasDatabaseName("ix_branch_users_branch_id");
+
+            entity.HasIndex(e => new { e.UserId, e.BranchId })
+                .IsUnique()
+                .HasDatabaseName("ux_branch_users_user_id_branch_id");
+
+            entity.HasIndex(e => e.Status)
+                .HasDatabaseName("ix_branch_users_status");
+
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne<Branch>()
+                .WithMany()
+                .HasForeignKey(e => e.BranchId)
+                .OnDelete(DeleteBehavior.Cascade);
+
         });
     }
 }

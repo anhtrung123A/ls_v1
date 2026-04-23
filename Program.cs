@@ -201,6 +201,7 @@ builder.Services.AddScoped<IFileStorageService, MinioFileStorageService>();
 builder.Services.AddScoped<IFileUrlResolver, StorageFileUrlResolver>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
+builder.Services.AddScoped<IBranchUserRepository, BranchUserRepository>();
 builder.Services.AddScoped<CreateUserUseCase>();
 builder.Services.AddScoped<GetUserProfileUseCase>();
 builder.Services.AddScoped<UpsertUserAvatarUseCase>();
@@ -211,6 +212,11 @@ builder.Services.AddScoped<GetBranchByIdUseCase>();
 builder.Services.AddScoped<UpdateBranchUseCase>();
 builder.Services.AddScoped<DeleteBranchUseCase>();
 builder.Services.AddScoped<UpsertBranchImageUseCase>();
+builder.Services.AddScoped<CreateBranchUserUseCase>();
+builder.Services.AddScoped<GetBranchUsersUseCase>();
+builder.Services.AddScoped<GetBranchUserByIdUseCase>();
+builder.Services.AddScoped<UpdateBranchUserUseCase>();
+builder.Services.AddScoped<DeleteBranchUserUseCase>();
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("Default")

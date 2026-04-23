@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using app.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using app.Infrastructure.Persistence;
 namespace app.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260423143136_AddBranchUsersTable")]
+    partial class AddBranchUsersTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -115,12 +118,9 @@ namespace app.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("app.Domain.Entities.BranchUser", b =>
                 {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<ulong>("UserId")
                         .HasColumnType("bigint unsigned")
-                        .HasColumnName("id");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<ulong>("Id"));
+                        .HasColumnName("user_id");
 
                     b.Property<ulong>("BranchId")
                         .HasColumnType("bigint unsigned")
@@ -140,6 +140,10 @@ namespace app.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime(6)")
                         .HasColumnName("deleted_at");
 
+                    b.Property<ulong>("RoleId")
+                        .HasColumnType("bigint unsigned")
+                        .HasColumnName("role_id");
+
                     b.Property<int>("Status")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
@@ -156,21 +160,16 @@ namespace app.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint unsigned")
                         .HasColumnName("updated_by_user_id");
 
-                    b.Property<ulong>("UserId")
-                        .HasColumnType("bigint unsigned")
-                        .HasColumnName("user_id");
-
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "BranchId");
 
                     b.HasIndex("BranchId")
                         .HasDatabaseName("ix_branch_users_branch_id");
 
+                    b.HasIndex("RoleId")
+                        .HasDatabaseName("ix_branch_users_role_id");
+
                     b.HasIndex("Status")
                         .HasDatabaseName("ix_branch_users_status");
-
-                    b.HasIndex("UserId", "BranchId")
-                        .IsUnique()
-                        .HasDatabaseName("ux_branch_users_user_id_branch_id");
 
                     b.ToTable("branch_users", (string)null);
                 });
@@ -457,6 +456,12 @@ namespace app.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("BranchId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("app.Domain.Entities.Role", null)
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("app.Domain.Entities.User", null)

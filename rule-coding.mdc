@@ -180,6 +180,24 @@ Infrastructure --------|
 - Register handlers in DI (for example `AddSingleton<IAuthorizationHandler, RoleHandler>()`).
 - Prefer reusable requirement/handler patterns to avoid policy explosion and improve scalability.
 
+### 3.19 Table key convention for API access
+
+- Tables used as API resources (including relation tables like `branch_users`) must have a surrogate primary key column `id`.
+- Composite keys can still be enforced via unique index (for example unique `(user_id, branch_id)`), but API routing and CRUD should use `id`.
+- Avoid exposing composite keys in endpoint paths when a surrogate `id` is available.
+
+### 3.20 Pagination for list APIs
+
+- Any API endpoint that returns a list must support pagination from the first release (no unbounded list endpoint).
+- Use common pagination request/response DTOs under `Application/DTOs/Responses` for consistency.
+- Paginated list responses must include:
+  - `totalRecords`
+  - `currentPage`
+  - `limit`
+  - `offset`
+  - `items`
+- Pagination should be executed at database query level (`Skip/Take` or equivalent), not by loading all records into memory first.
+
 ---
 
 ## 4. DI Rules (`Program.cs`)

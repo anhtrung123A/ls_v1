@@ -25,6 +25,13 @@ public static class AppErrors
         public const string NotFound = "Branch not found.";
     }
 
+    public static class BranchUser
+    {
+        public const string NotFound = "Branch user not found.";
+        public const string AlreadyExists = "Branch user already exists.";
+        public const string InvalidStatus = "Branch user status is invalid.";
+    }
+
     public static class External
     {
         public const string AuthServiceCallFailed = "Failed to call auth service.";
