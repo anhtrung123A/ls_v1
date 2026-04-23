@@ -17,7 +17,9 @@ public class UserRepository : IUserRepository
 
     public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        return _dbContext.Users.FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
+        return _dbContext.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
     }
 
     public async Task AddAsync(User user, CancellationToken cancellationToken = default)
@@ -39,6 +41,7 @@ public class UserRepository : IUserRepository
     public async Task<(User? User, FileEntity? Avatar)> GetWithAvatarByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
         var user = await _dbContext.Users
+            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Email == email, cancellationToken);
 
         if (user is null || !user.AvatarFileId.HasValue)
@@ -47,6 +50,7 @@ public class UserRepository : IUserRepository
         }
 
         var avatar = await _dbContext.Files
+            .AsNoTracking()
             .FirstOrDefaultAsync(x => x.Id == user.AvatarFileId.Value && x.DeletedAt == null, cancellationToken);
 
         return (user, avatar);
@@ -58,11 +62,14 @@ public class UserRepository : IUserRepository
         try
         {
             var currentAvatarFileId = await _dbContext.Users
+                .AsNoTracking()
                 .Where(x => x.Id == userId)
                 .Select(x => x.AvatarFileId)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            var userExists = await _dbContext.Users.AnyAsync(x => x.Id == userId, cancellationToken);
+            var userExists = await _dbContext.Users
+                .AsNoTracking()
+                .AnyAsync(x => x.Id == userId, cancellationToken);
             if (!userExists)
             {
                 throw new KeyNotFoundException("User not found.");
@@ -103,11 +110,14 @@ public class UserRepository : IUserRepository
     public async Task<FileEntity?> RemoveAvatarAsync(ulong userId, CancellationToken cancellationToken = default)
     {
         var avatarFileId = await _dbContext.Users
+            .AsNoTracking()
             .Where(x => x.Id == userId)
             .Select(x => x.AvatarFileId)
             .FirstOrDefaultAsync(cancellationToken);
 
-        var userExists = await _dbContext.Users.AnyAsync(x => x.Id == userId, cancellationToken);
+        var userExists = await _dbContext.Users
+            .AsNoTracking()
+            .AnyAsync(x => x.Id == userId, cancellationToken);
         if (!userExists)
         {
             throw new KeyNotFoundException("User not found.");

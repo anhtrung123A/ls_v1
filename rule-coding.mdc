@@ -127,6 +127,12 @@ Infrastructure --------|
   - Return response
 - Dependencies should use constructor injection (avoid `[FromServices]` in action parameters unless truly necessary).
 
+### 3.13 Read queries must use AsNoTracking
+
+- All read-only EF Core queries must include `AsNoTracking()`.
+- Apply this rule across the entire project (API/Application/Infrastructure where queries are defined).
+- Only skip `AsNoTracking()` when entity tracking is explicitly required for a following write operation.
+
 ---
 
 ## 4. DI Rules (`Program.cs`)
