@@ -41,7 +41,6 @@ public class CreateBranchUseCase
             City = dto.City?.Trim(),
             PostalCode = dto.PostalCode?.Trim(),
             Country = dto.Country?.Trim(),
-            ImageFileId = dto.ImageFileId,
             CreatedAt = now,
             UpdatedAt = now,
             CreatedByUserId = actorUserId,

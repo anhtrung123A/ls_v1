@@ -1,4 +1,5 @@
 using app.API.Middlewares;
+using app.Application.Authorization;
 using app.Application.Mappings;
 using app.Application.DTOs.Responses;
 using app.Application.Errors;
@@ -14,6 +15,7 @@ using app.Infrastructure.ExternalServices;
 using app.Infrastructure.Persistence;
 using app.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -181,12 +183,13 @@ builder.Services
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("BranchCrudRoleOnly", policy =>
+    options.AddPolicy("BranchCrud", policy =>
     {
         policy.RequireAuthenticatedUser();
-        policy.RequireClaim(JwtClaimNames.RoleId, "2");
+        policy.Requirements.Add(new RoleRequirement(RoleIds.Admin));
     });
 });
+builder.Services.AddSingleton<IAuthorizationHandler, RoleHandler>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
 builder.Services.AddAutoMapper(typeof(BranchMappingProfile).Assembly);
 builder.Services.AddFluentValidationAutoValidation();
@@ -207,6 +210,7 @@ builder.Services.AddScoped<GetBranchesUseCase>();
 builder.Services.AddScoped<GetBranchByIdUseCase>();
 builder.Services.AddScoped<UpdateBranchUseCase>();
 builder.Services.AddScoped<DeleteBranchUseCase>();
+builder.Services.AddScoped<UpsertBranchImageUseCase>();
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("Default")

@@ -43,7 +43,6 @@ public class UpdateBranchUseCase
         existing.City = dto.City?.Trim();
         existing.PostalCode = dto.PostalCode?.Trim();
         existing.Country = dto.Country?.Trim();
-        existing.ImageFileId = dto.ImageFileId;
         existing.UpdatedAt = DateTime.UtcNow;
         existing.UpdatedByUserId = UserClaimResolver.TryGetUserId(user);
 

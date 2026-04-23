@@ -168,6 +168,18 @@ Infrastructure --------|
 - Do not create ad-hoc mapping helper classes inside use case files/folders (for example, avoid `*Mappings` classes in `Application/UseCases`).
 - Register AutoMapper in `Program.cs` and keep mapping logic centralized in profile classes.
 
+### 3.18 Authorization must be centralized (ASP.NET)
+
+- Authorization logic must be centralized in `AuthorizationHandler` implementations, not embedded directly in policy definitions.
+- Policy must be config-only:
+  - `policy.RequireAuthenticatedUser()`
+  - `policy.Requirements.Add(new ...Requirement(...))`
+- `IAuthorizationRequirement` classes must contain data only (for example `RoleId`, `Permission`, etc.), no decision logic.
+- Do not put authorization logic in `RequireClaim(...)` for business authorization rules.
+- Do not hard-code role values like `"2"` in policy/controller; use constants (for example `RoleIds.BranchCrud`).
+- Register handlers in DI (for example `AddSingleton<IAuthorizationHandler, RoleHandler>()`).
+- Prefer reusable requirement/handler patterns to avoid policy explosion and improve scalability.
+
 ---
 
 ## 4. DI Rules (`Program.cs`)

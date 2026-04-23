@@ -2,6 +2,7 @@ using app.Domain.Entities;
 using app.Domain.Interfaces;
 using app.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using FileEntity = app.Domain.Entities.File;
 
 namespace app.Infrastructure.Repositories;
 
@@ -104,6 +105,54 @@ public class BranchRepository : IBranchRepository
             await _dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             return true;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
+    }
+
+    public async Task<FileEntity?> UpsertImageAsync(
+        ulong branchId,
+        FileEntity newImage,
+        ulong? updatedByUserId,
+        CancellationToken cancellationToken = default)
+    {
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            var existingBranch = await _dbContext.Branches
+                .FirstOrDefaultAsync(x => x.Id == branchId, cancellationToken);
+
+            if (existingBranch is null)
+            {
+                throw new KeyNotFoundException("Branch not found.");
+            }
+
+            FileEntity? previousImage = null;
+            if (existingBranch.ImageFileId.HasValue)
+            {
+                previousImage = await _dbContext.Files
+                    .FirstOrDefaultAsync(x => x.Id == existingBranch.ImageFileId.Value, cancellationToken);
+            }
+
+            _dbContext.Files.Add(newImage);
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            existingBranch.ImageFileId = newImage.Id;
+            existingBranch.UpdatedAt = DateTime.UtcNow;
+            existingBranch.UpdatedByUserId = updatedByUserId;
+
+            if (previousImage is not null)
+            {
+                previousImage.DeletedAt = DateTime.UtcNow;
+            }
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return previousImage;
         }
         catch
         {

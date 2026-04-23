@@ -9,7 +9,7 @@ namespace app.API.Controllers;
 
 [ApiController]
 [ApiVersion("1.0")]
-[Authorize(Policy = "BranchCrudRoleOnly")]
+[Authorize(Policy = "BranchCrud")]
 [Route("api/v{version:apiVersion}/branches")]
 public class BranchesController : ControllerBase
 {
@@ -18,19 +18,22 @@ public class BranchesController : ControllerBase
     private readonly GetBranchByIdUseCase _getBranchByIdUseCase;
     private readonly UpdateBranchUseCase _updateBranchUseCase;
     private readonly DeleteBranchUseCase _deleteBranchUseCase;
+    private readonly UpsertBranchImageUseCase _upsertBranchImageUseCase;
 
     public BranchesController(
         CreateBranchUseCase createBranchUseCase,
         GetBranchesUseCase getBranchesUseCase,
         GetBranchByIdUseCase getBranchByIdUseCase,
         UpdateBranchUseCase updateBranchUseCase,
-        DeleteBranchUseCase deleteBranchUseCase)
+        DeleteBranchUseCase deleteBranchUseCase,
+        UpsertBranchImageUseCase upsertBranchImageUseCase)
     {
         _createBranchUseCase = createBranchUseCase;
         _getBranchesUseCase = getBranchesUseCase;
         _getBranchByIdUseCase = getBranchByIdUseCase;
         _updateBranchUseCase = updateBranchUseCase;
         _deleteBranchUseCase = deleteBranchUseCase;
+        _upsertBranchImageUseCase = upsertBranchImageUseCase;
     }
 
     [HttpPost]
@@ -47,24 +50,38 @@ public class BranchesController : ControllerBase
         return Ok(ApiResponse<IReadOnlyList<BranchDto>>.Ok(branches, "Branches fetched successfully."));
     }
 
-    [HttpGet("{id:ulong}")]
+    [HttpGet("{id:long}")]
     public async Task<IActionResult> GetById(ulong id, CancellationToken cancellationToken)
     {
         var branch = await _getBranchByIdUseCase.ExecuteAsync(id, cancellationToken);
         return Ok(ApiResponse<BranchDto>.Ok(branch, "Branch fetched successfully."));
     }
 
-    [HttpPut("{id:ulong}")]
+    [HttpPut("{id:long}")]
     public async Task<IActionResult> Update(ulong id, [FromBody] UpdateBranchDto dto, CancellationToken cancellationToken)
     {
         var branch = await _updateBranchUseCase.ExecuteAsync(User, id, dto, cancellationToken);
         return Ok(ApiResponse<BranchDto>.Ok(branch, "Branch updated successfully."));
     }
 
-    [HttpDelete("{id:ulong}")]
+    [HttpDelete("{id:long}")]
     public async Task<IActionResult> Delete(ulong id, CancellationToken cancellationToken)
     {
         await _deleteBranchUseCase.ExecuteAsync(User, id, cancellationToken);
         return Ok(ApiResponse<bool>.Ok(true, "Branch deleted successfully."));
+    }
+
+    [HttpPost("{id:long}/image")]
+    public async Task<IActionResult> UploadImage(ulong id, [FromForm] UploadBranchImageDto dto, CancellationToken cancellationToken)
+    {
+        var image = await _upsertBranchImageUseCase.ExecuteAsync(User, id, dto.Image, cancellationToken);
+        return Ok(ApiResponse<BranchImageDto>.Ok(image, "Branch image uploaded successfully."));
+    }
+
+    [HttpPut("{id:long}/image")]
+    public async Task<IActionResult> EditImage(ulong id, [FromForm] UploadBranchImageDto dto, CancellationToken cancellationToken)
+    {
+        var image = await _upsertBranchImageUseCase.ExecuteAsync(User, id, dto.Image, cancellationToken);
+        return Ok(ApiResponse<BranchImageDto>.Ok(image, "Branch image updated successfully."));
     }
 }
