@@ -133,6 +133,17 @@ Infrastructure --------|
 - Apply this rule across the entire project (API/Application/Infrastructure where queries are defined).
 - Only skip `AsNoTracking()` when entity tracking is explicitly required for a following write operation.
 
+### 3.14 Mandatory audit columns for new tables
+
+- Every newly created database table must include these columns:
+  - `created_at`
+  - `updated_at`
+  - `created_by_user_id`
+  - `updated_by_user_id`
+  - `deleted_at`
+- `created_at` and `updated_at` must use database defaults (`CURRENT_TIMESTAMP(6)` and update-on-write where supported).
+- `deleted_at` must be nullable to support soft delete.
+
 ---
 
 ## 4. DI Rules (`Program.cs`)

@@ -13,6 +13,8 @@ public class AppDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
     public DbSet<FileEntity> Files => Set<FileEntity>();
+    public DbSet<Role> Roles => Set<Role>();
+    public DbSet<UserRole> UserRoles => Set<UserRole>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -122,6 +124,104 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Metadata)
                 .HasColumnName("metadata")
                 .HasColumnType("json");
+        });
+
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.ToTable("roles");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Id)
+                .HasColumnName("id")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.Name)
+                .HasColumnName("name")
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)");
+
+            entity.Property(e => e.CreatedByUserId)
+                .HasColumnName("created_by_user_id");
+
+            entity.Property(e => e.UpdatedByUserId)
+                .HasColumnName("updated_by_user_id");
+
+            entity.Property(e => e.DeletedAt)
+                .HasColumnName("deleted_at")
+                .HasColumnType("datetime(6)");
+
+            entity.HasIndex(e => e.Name)
+                .IsUnique()
+                .HasDatabaseName("ux_roles_name");
+
+            entity.HasData(
+                new Role { Id = 1, Name = "admin", CreatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc) },
+                new Role { Id = 2, Name = "branch_manager", CreatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc) },
+                new Role { Id = 3, Name = "operator", CreatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc) },
+                new Role { Id = 4, Name = "teacher", CreatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc) },
+                new Role { Id = 5, Name = "student", CreatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc) },
+                new Role { Id = 6, Name = "parent", CreatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc) }
+            );
+        });
+
+        modelBuilder.Entity<UserRole>(entity =>
+        {
+            entity.ToTable("user_roles");
+            entity.HasKey(e => new { e.UserId, e.RoleId });
+
+            entity.Property(e => e.UserId)
+                .HasColumnName("user_id");
+
+            entity.Property(e => e.RoleId)
+                .HasColumnName("role_id");
+
+            entity.Property(e => e.AssignedAt)
+                .HasColumnName("assigned_at")
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)");
+
+            entity.Property(e => e.CreatedByUserId)
+                .HasColumnName("created_by_user_id");
+
+            entity.Property(e => e.UpdatedByUserId)
+                .HasColumnName("updated_by_user_id");
+
+            entity.Property(e => e.DeletedAt)
+                .HasColumnName("deleted_at")
+                .HasColumnType("datetime(6)");
+
+            entity.HasIndex(e => e.RoleId)
+                .HasDatabaseName("ix_user_roles_role_id");
+
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne<Role>()
+                .WithMany()
+                .HasForeignKey(e => e.RoleId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }
