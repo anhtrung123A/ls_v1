@@ -144,6 +144,30 @@ Infrastructure --------|
 - `created_at` and `updated_at` must use database defaults (`CURRENT_TIMESTAMP(6)` and update-on-write where supported).
 - `deleted_at` must be nullable to support soft delete.
 
+### 3.15 Soft delete must use Global Query Filter
+
+- Any entity/table that has `deleted_at` must define EF Core Global Query Filter in `AppDbContext`:
+  - `entity.HasQueryFilter(e => e.DeletedAt == null)`.
+- Repository/use case read queries must not duplicate manual soft-delete condition (no `DeletedAt == null` in normal queries).
+- Only bypass filter intentionally via `IgnoreQueryFilters()` for explicit admin/audit/recovery scenarios.
+
+### 3.16 Column ordering convention
+
+- For tables containing business columns + audit columns, audit columns must stay at the end of the table.
+- Required audit order at the end:
+  - `created_at`
+  - `updated_at`
+  - `created_by_user_id`
+  - `updated_by_user_id`
+  - `deleted_at`
+- `metadata` (or similar business JSON columns) must be placed before audit columns, not after `deleted_at`.
+
+### 3.17 Object mapping convention
+
+- Use AutoMapper profiles in `Application/Mappings` for entity-to-DTO and DTO-to-entity mapping.
+- Do not create ad-hoc mapping helper classes inside use case files/folders (for example, avoid `*Mappings` classes in `Application/UseCases`).
+- Register AutoMapper in `Program.cs` and keep mapping logic centralized in profile classes.
+
 ---
 
 ## 4. DI Rules (`Program.cs`)

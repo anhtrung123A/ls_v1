@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<FileEntity> Files => Set<FileEntity>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
+    public DbSet<Branch> Branches => Set<Branch>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -22,6 +23,7 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("users");
             entity.HasKey(e => e.Id);
+            entity.HasQueryFilter(e => e.DeletedAt == null);
 
             entity.Property(e => e.Id)
                 .HasColumnName("id")
@@ -82,6 +84,7 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("files");
             entity.HasKey(e => e.Id);
+            entity.HasQueryFilter(e => e.DeletedAt == null);
 
             entity.Property(e => e.Id)
                 .HasColumnName("id")
@@ -130,6 +133,7 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("roles");
             entity.HasKey(e => e.Id);
+            entity.HasQueryFilter(e => e.DeletedAt == null);
 
             entity.Property(e => e.Id)
                 .HasColumnName("id")
@@ -178,6 +182,7 @@ public class AppDbContext : DbContext
         {
             entity.ToTable("user_roles");
             entity.HasKey(e => new { e.UserId, e.RoleId });
+            entity.HasQueryFilter(e => e.DeletedAt == null);
 
             entity.Property(e => e.UserId)
                 .HasColumnName("user_id");
@@ -222,6 +227,85 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.RoleId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Branch>(entity =>
+        {
+            entity.ToTable("branches");
+            entity.HasKey(e => e.Id);
+            entity.HasQueryFilter(e => e.DeletedAt == null);
+
+            entity.Property(e => e.Id)
+                .HasColumnName("id")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.Name)
+                .HasColumnName("name")
+                .HasMaxLength(BranchConstants.NameMaxLength)
+                .IsRequired();
+
+            entity.Property(e => e.Description)
+                .HasColumnName("description")
+                .HasMaxLength(BranchConstants.DescriptionMaxLength);
+
+            entity.Property(e => e.AddressLine1)
+                .HasColumnName("address_line1")
+                .HasMaxLength(BranchConstants.AddressLineMaxLength);
+
+            entity.Property(e => e.AddressLine2)
+                .HasColumnName("address_line2")
+                .HasMaxLength(BranchConstants.AddressLineMaxLength);
+
+            entity.Property(e => e.Ward)
+                .HasColumnName("ward")
+                .HasMaxLength(BranchConstants.WardMaxLength);
+
+            entity.Property(e => e.District)
+                .HasColumnName("district")
+                .HasMaxLength(BranchConstants.DistrictMaxLength);
+
+            entity.Property(e => e.City)
+                .HasColumnName("city")
+                .HasMaxLength(BranchConstants.CityMaxLength);
+
+            entity.Property(e => e.PostalCode)
+                .HasColumnName("postal_code")
+                .HasMaxLength(BranchConstants.PostalCodeMaxLength);
+
+            entity.Property(e => e.Country)
+                .HasColumnName("country")
+                .HasMaxLength(BranchConstants.CountryMaxLength);
+
+            entity.Property(e => e.ImageFileId)
+                .HasColumnName("image_file_id");
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)");
+
+            entity.Property(e => e.CreatedByUserId)
+                .HasColumnName("created_by_user_id");
+
+            entity.Property(e => e.UpdatedByUserId)
+                .HasColumnName("updated_by_user_id");
+
+            entity.Property(e => e.DeletedAt)
+                .HasColumnName("deleted_at")
+                .HasColumnType("datetime(6)");
+
+            entity.HasIndex(e => e.ImageFileId)
+                .HasDatabaseName("ix_branches_image_file_id");
+
+            entity.HasOne<FileEntity>()
+                .WithMany()
+                .HasForeignKey(e => e.ImageFileId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

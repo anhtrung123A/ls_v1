@@ -18,4 +18,17 @@ internal static class UserClaimResolver
 
         return email;
     }
+
+    public static ulong? TryGetUserId(ClaimsPrincipal user)
+    {
+        var subjectValue = user.FindFirstValue(JwtClaimNames.Subject)
+            ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (!ulong.TryParse(subjectValue, out var userId))
+        {
+            return null;
+        }
+
+        return userId;
+    }
 }

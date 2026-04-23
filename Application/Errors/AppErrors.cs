@@ -19,6 +19,12 @@ public static class AppErrors
         public const string UserNotFoundByEmail = "User not found by token email.";
     }
 
+    public static class Branch
+    {
+        public const string NameRequired = "Branch name is required.";
+        public const string NotFound = "Branch not found.";
+    }
+
     public static class External
     {
         public const string AuthServiceCallFailed = "Failed to call auth service.";

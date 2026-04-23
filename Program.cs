@@ -1,4 +1,5 @@
 using app.API.Middlewares;
+using app.Application.Mappings;
 using app.Application.DTOs.Responses;
 using app.Application.Errors;
 using app.Application.UseCases;
@@ -8,6 +9,7 @@ using app.Domain.Interfaces;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using app.Infrastructure.Configurations;
+using app.Domain.Constants;
 using app.Infrastructure.ExternalServices;
 using app.Infrastructure.Persistence;
 using app.Infrastructure.Repositories;
@@ -16,6 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 
@@ -123,6 +126,34 @@ builder.Services
         };
         options.Events = new JwtBearerEvents
         {
+            OnTokenValidated = async context =>
+            {
+                var principal = context.Principal;
+                var email = principal?.FindFirstValue(JwtClaimNames.Email) ?? principal?.FindFirstValue(ClaimTypes.Email);
+
+                if (string.IsNullOrWhiteSpace(email) || principal is null)
+                {
+                    return;
+                }
+
+                var hasRoleIdClaim = principal.HasClaim(x => x.Type == JwtClaimNames.RoleId);
+                if (hasRoleIdClaim)
+                {
+                    return;
+                }
+
+                var userRepository = context.HttpContext.RequestServices.GetRequiredService<IUserRepository>();
+                var roleId = await userRepository.GetRoleIdByEmailAsync(email, context.HttpContext.RequestAborted);
+                if (!roleId.HasValue)
+                {
+                    return;
+                }
+
+                if (principal.Identity is ClaimsIdentity identity)
+                {
+                    identity.AddClaim(new Claim(JwtClaimNames.RoleId, roleId.Value.ToString()));
+                }
+            },
             OnAuthenticationFailed = context =>
             {
                 context.HttpContext.Items["AuthErrorMessage"] = context.Exception is SecurityTokenExpiredException
@@ -148,8 +179,16 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("BranchCrudRoleOnly", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.RequireClaim(JwtClaimNames.RoleId, "2");
+    });
+});
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
+builder.Services.AddAutoMapper(typeof(BranchMappingProfile).Assembly);
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddHttpClient<IExternalApiClient, ExternalApiClient>();
 builder.Services.AddScoped<IAuthUserService, AuthUserService>();
@@ -158,10 +197,16 @@ builder.Services.AddScoped<IImageProcessor, ImageSharpProcessor>();
 builder.Services.AddScoped<IFileStorageService, MinioFileStorageService>();
 builder.Services.AddScoped<IFileUrlResolver, StorageFileUrlResolver>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 builder.Services.AddScoped<CreateUserUseCase>();
 builder.Services.AddScoped<GetUserProfileUseCase>();
 builder.Services.AddScoped<UpsertUserAvatarUseCase>();
 builder.Services.AddScoped<DeleteUserAvatarUseCase>();
+builder.Services.AddScoped<CreateBranchUseCase>();
+builder.Services.AddScoped<GetBranchesUseCase>();
+builder.Services.AddScoped<GetBranchByIdUseCase>();
+builder.Services.AddScoped<UpdateBranchUseCase>();
+builder.Services.AddScoped<DeleteBranchUseCase>();
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("Default")

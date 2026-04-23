@@ -51,9 +51,34 @@ public class UserRepository : IUserRepository
 
         var avatar = await _dbContext.Files
             .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == user.AvatarFileId.Value && x.DeletedAt == null, cancellationToken);
+            .FirstOrDefaultAsync(x => x.Id == user.AvatarFileId.Value, cancellationToken);
 
         return (user, avatar);
+    }
+
+    public async Task<ulong?> GetRoleIdByUserIdAsync(ulong userId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.UserRoles
+            .AsNoTracking()
+            .Where(x => x.UserId == userId)
+            .OrderByDescending(x => x.AssignedAt)
+            .Select(x => (ulong?)x.RoleId)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<ulong?> GetRoleIdByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Users
+            .AsNoTracking()
+            .Where(x => x.Email == email)
+            .Select(x => x.Id)
+            .SelectMany(userId => _dbContext.UserRoles
+                .AsNoTracking()
+                .Where(ur => ur.UserId == userId)
+                .OrderByDescending(ur => ur.AssignedAt)
+                .Select(ur => (ulong?)ur.RoleId)
+                .Take(1))
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<FileEntity?> UpsertAvatarAsync(ulong userId, FileEntity newAvatar, CancellationToken cancellationToken = default)
@@ -79,7 +104,7 @@ public class UserRepository : IUserRepository
             if (currentAvatarFileId.HasValue)
             {
                 previousAvatar = await _dbContext.Files
-                    .FirstOrDefaultAsync(x => x.Id == currentAvatarFileId.Value && x.DeletedAt == null, cancellationToken);
+                    .FirstOrDefaultAsync(x => x.Id == currentAvatarFileId.Value, cancellationToken);
             }
 
             _dbContext.Files.Add(newAvatar);
@@ -132,7 +157,7 @@ public class UserRepository : IUserRepository
         try
         {
             var existingAvatar = await _dbContext.Files
-                .FirstOrDefaultAsync(x => x.Id == avatarFileId.Value && x.DeletedAt == null, cancellationToken);
+                .FirstOrDefaultAsync(x => x.Id == avatarFileId.Value, cancellationToken);
 
             await _dbContext.Users
                 .Where(x => x.Id == userId)

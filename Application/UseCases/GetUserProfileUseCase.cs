@@ -29,9 +29,12 @@ public class GetUserProfileUseCase
             throw new KeyNotFoundException(AppErrors.User.UserNotFoundByEmail);
         }
 
+        var roleId = await _userRepository.GetRoleIdByUserIdAsync(userWithAvatar.User.Id, cancellationToken);
+
         return new UserProfileDto
         {
             Id = userWithAvatar.User.Id,
+            RoleId = roleId,
             Firstname = userWithAvatar.User.Firstname,
             Lastname = userWithAvatar.User.Lastname,
             Email = userWithAvatar.User.Email,
