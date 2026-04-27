@@ -553,6 +553,239 @@ Base URL: `/api/v1`
 }
 ```
 
+## 18) Lead Source/Status Enum
+- **Lead Source (`source`)**:
+  - `1`: `facebook`
+  - `2`: `zalo`
+  - `3`: `referral`
+- **Lead Status (`status`)**:
+  - `1`: `new`
+  - `2`: `consulting`
+  - `3`: `tested`
+  - `4`: `converted`
+  - `5`: `failed`
+
+## 19) Create Lead
+- **Method/Path**: `POST /leads`
+- **Auth**: `Bearer JWT` + role `sale` (`roleId = 7`)
+- **Input (JSON body)**:
+```json
+{
+  "firstName": "An",
+  "fullName": "Nguyen Van An",
+  "source": 1,
+  "status": 1,
+  "phonenumber": "0901234567",
+  "assignedTo": 25,
+  "note": "Quan tâm khóa IELTS Foundation",
+  "metadata": "{\"campaign\":\"fb_ads_q2\"}"
+}
+```
+- **Output**:
+  - `201 Created`: tạo lead thành công
+  - `400 Bad Request`: thiếu/sai dữ liệu đầu vào
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền `sale`
+  - `409 Conflict`: `phonenumber` đã tồn tại
+  - `500 Internal Server Error`: lỗi hệ thống
+- **Response mẫu (201)**:
+```json
+{
+  "success": true,
+  "message": "Lead created successfully.",
+  "data": {
+    "id": 1,
+    "firstName": "An",
+    "fullName": "Nguyen Van An",
+    "source": 1,
+    "status": 1,
+    "phonenumber": "0901234567",
+    "assignedTo": 25,
+    "note": "Quan tâm khóa IELTS Foundation",
+    "metadata": "{\"campaign\":\"fb_ads_q2\"}"
+  }
+}
+```
+
+## 20) Get Lead List (Paginated)
+- **Method/Path**: `GET /leads`
+- **Auth**: `Bearer JWT` + role `sale` (`roleId = 7`)
+- **Input (query)**:
+  - `page` (`int`, optional, default theo `PaginationQueryDto`)
+  - `limit` (`int`, optional, default theo `PaginationQueryDto`)
+- **Output**:
+  - `200 OK`: lấy danh sách lead thành công
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền `sale`
+  - `500 Internal Server Error`: lỗi hệ thống
+- **Response mẫu (200)**:
+```json
+{
+  "success": true,
+  "message": "Leads fetched successfully.",
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "firstName": "An",
+        "fullName": "Nguyen Van An",
+        "source": 1,
+        "status": 2,
+        "phonenumber": "0901234567",
+        "assignedTo": 25,
+        "note": "Đã tư vấn buổi 1",
+        "metadata": null
+      }
+    ],
+    "totalRecords": 1,
+    "currentPage": 1,
+    "limit": 20,
+    "offset": 0
+  }
+}
+```
+
+## 21) Get Lead By Id
+- **Method/Path**: `GET /leads/{id}`
+- **Auth**: `Bearer JWT` + role `sale` (`roleId = 7`)
+- **Input**: path param `id` (`long`)
+- **Output**:
+  - `200 OK`: lấy lead thành công
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền `sale`
+  - `404 Not Found`: không tìm thấy lead
+  - `500 Internal Server Error`: lỗi hệ thống
+
+## 22) Update Lead
+- **Method/Path**: `PUT /leads/{id}`
+- **Auth**: `Bearer JWT` + role `sale` (`roleId = 7`)
+- **Input**:
+  - path param `id` (`long`)
+  - JSON body:
+```json
+{
+  "firstName": "An",
+  "fullName": "Nguyen Van An",
+  "source": 2,
+  "status": 2,
+  "phonenumber": "0901234567",
+  "assignedTo": 25,
+  "note": "Đã tư vấn, hẹn test đầu vào",
+  "metadata": "{\"updatedBy\":\"sale_team_1\"}"
+}
+```
+- **Output**:
+  - `200 OK`: cập nhật lead thành công
+  - `400 Bad Request`: thiếu/sai dữ liệu đầu vào
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền `sale`
+  - `404 Not Found`: không tìm thấy lead
+  - `409 Conflict`: `phonenumber` đã tồn tại
+  - `500 Internal Server Error`: lỗi hệ thống
+
+## 23) Delete Lead (Soft Delete)
+- **Method/Path**: `DELETE /leads/{id}`
+- **Auth**: `Bearer JWT` + role `sale` (`roleId = 7`)
+- **Input**: path param `id` (`long`)
+- **Output**:
+  - `200 OK`: xóa mềm lead thành công
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền `sale`
+  - `404 Not Found`: không tìm thấy lead
+  - `500 Internal Server Error`: lỗi hệ thống
+
+## 24) Get Assigned Leads By User (Paginated)
+- **Method/Path**: `GET /leads/assigned/{userId}`
+- **Auth**: `Bearer JWT` + role `sale` (`roleId = 7`)
+- **Input**:
+  - path param `userId` (`long`)
+  - query: `page`, `limit`
+- **Output**:
+  - `200 OK`: lấy danh sách lead được assign cho user thành công
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền `sale`
+  - `500 Internal Server Error`: lỗi hệ thống
+
+## 25) Create Lead Note
+- **Method/Path**: `POST /leads/{leadId}/notes`
+- **Auth**: `Bearer JWT` + role `sale` (`roleId = 7`)
+- **Input**:
+  - path param `leadId` (`long`)
+  - JSON body:
+```json
+{
+  "content": "Đã gọi điện, phụ huynh yêu cầu gửi lộ trình.",
+  "metadata": "{\"callResult\":\"interested\"}"
+}
+```
+- **Output**:
+  - `201 Created`: tạo lead note thành công
+  - `400 Bad Request`: thiếu/sai dữ liệu đầu vào
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền `sale`
+  - `404 Not Found`: không tìm thấy lead
+  - `500 Internal Server Error`: lỗi hệ thống
+
+## 26) Get Lead Note List (Paginated)
+- **Method/Path**: `GET /leads/{leadId}/notes`
+- **Auth**: `Bearer JWT` + role `sale` (`roleId = 7`)
+- **Input**:
+  - path param `leadId` (`long`)
+  - query: `page`, `limit`
+- **Output**:
+  - `200 OK`: lấy danh sách note của lead thành công
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền `sale`
+  - `404 Not Found`: không tìm thấy lead
+  - `500 Internal Server Error`: lỗi hệ thống
+
+## 27) Get Lead Note By Id
+- **Method/Path**: `GET /leads/{leadId}/notes/{id}`
+- **Auth**: `Bearer JWT` + role `sale` (`roleId = 7`)
+- **Input**:
+  - path param `leadId` (`long`)
+  - path param `id` (`long`)
+- **Output**:
+  - `200 OK`: lấy lead note thành công
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền `sale`
+  - `404 Not Found`: không tìm thấy lead hoặc lead note
+  - `500 Internal Server Error`: lỗi hệ thống
+
+## 28) Update Lead Note
+- **Method/Path**: `PUT /leads/{leadId}/notes/{id}`
+- **Auth**: `Bearer JWT` + role `sale` (`roleId = 7`)
+- **Input**:
+  - path param `leadId` (`long`)
+  - path param `id` (`long`)
+  - JSON body:
+```json
+{
+  "content": "Đã gửi lộ trình + học phí qua Zalo.",
+  "metadata": "{\"channel\":\"zalo\"}"
+}
+```
+- **Output**:
+  - `200 OK`: cập nhật lead note thành công
+  - `400 Bad Request`: thiếu/sai dữ liệu đầu vào
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền `sale`
+  - `404 Not Found`: không tìm thấy lead hoặc lead note
+  - `500 Internal Server Error`: lỗi hệ thống
+
+## 29) Delete Lead Note (Soft Delete)
+- **Method/Path**: `DELETE /leads/{leadId}/notes/{id}`
+- **Auth**: `Bearer JWT` + role `sale` (`roleId = 7`)
+- **Input**:
+  - path param `leadId` (`long`)
+  - path param `id` (`long`)
+- **Output**:
+  - `200 OK`: xóa mềm lead note thành công
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền `sale`
+  - `404 Not Found`: không tìm thấy lead hoặc lead note
+  - `500 Internal Server Error`: lỗi hệ thống
+
 ## Response format chung
 - **Success**:
 ```json

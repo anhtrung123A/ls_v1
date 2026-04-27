@@ -8,6 +8,7 @@ public interface ILeadRepository
     Task<Lead?> GetByIdAsync(ulong id, CancellationToken cancellationToken = default);
     Task<int> CountAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Lead>> GetPageAsync(int offset, int limit, CancellationToken cancellationToken = default);
+    Task<bool> ExistsByPhoneNumberAsync(string phonenumber, ulong? excludeLeadId = null, CancellationToken cancellationToken = default);
     Task<int> CountAssignedToAsync(ulong userId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Lead>> GetAssignedPageAsync(ulong userId, int offset, int limit, CancellationToken cancellationToken = default);
     Task<Lead?> UpdateAsync(Lead lead, CancellationToken cancellationToken = default);

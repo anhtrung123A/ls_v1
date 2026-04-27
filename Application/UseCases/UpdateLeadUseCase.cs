@@ -35,10 +35,21 @@ public class UpdateLeadUseCase
             throw new KeyNotFoundException(AppErrors.Lead.NotFound);
         }
 
+        var normalizedPhone = string.IsNullOrWhiteSpace(dto.Phonenumber) ? null : dto.Phonenumber.Trim();
+        if (!string.IsNullOrWhiteSpace(normalizedPhone))
+        {
+            var existed = await _leadRepository.ExistsByPhoneNumberAsync(normalizedPhone, existing.Id, cancellationToken);
+            if (existed)
+            {
+                throw new InvalidOperationException(AppErrors.Lead.PhoneNumberAlreadyExists);
+            }
+        }
+
         existing.FirstName = dto.FirstName.Trim();
         existing.FullName = dto.FullName.Trim();
         existing.Source = dto.Source;
         existing.Status = dto.Status;
+        existing.Phonenumber = normalizedPhone;
         existing.AssignedTo = dto.AssignedTo;
         existing.Note = dto.Note?.Trim();
         existing.Metadata = dto.Metadata;

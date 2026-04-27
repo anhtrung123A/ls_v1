@@ -53,6 +53,20 @@ public class LeadRepository : ILeadRepository
             .ToListAsync(cancellationToken);
     }
 
+    public Task<bool> ExistsByPhoneNumberAsync(string phonenumber, ulong? excludeLeadId = null, CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.Leads
+            .AsNoTracking()
+            .Where(x => x.Phonenumber == phonenumber);
+
+        if (excludeLeadId.HasValue)
+        {
+            query = query.Where(x => x.Id != excludeLeadId.Value);
+        }
+
+        return query.AnyAsync(cancellationToken);
+    }
+
     public Task<int> CountAssignedToAsync(ulong userId, CancellationToken cancellationToken = default)
     {
         return _dbContext.Leads
@@ -87,6 +101,7 @@ public class LeadRepository : ILeadRepository
             existing.FullName = lead.FullName;
             existing.Source = lead.Source;
             existing.Status = lead.Status;
+            existing.Phonenumber = lead.Phonenumber;
             existing.AssignedTo = lead.AssignedTo;
             existing.Note = lead.Note;
             existing.Metadata = lead.Metadata;

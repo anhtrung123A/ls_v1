@@ -30,6 +30,16 @@ public class CreateLeadUseCase
             throw new ArgumentException(AppErrors.Lead.FullNameRequired);
         }
 
+        var normalizedPhone = string.IsNullOrWhiteSpace(dto.Phonenumber) ? null : dto.Phonenumber.Trim();
+        if (!string.IsNullOrWhiteSpace(normalizedPhone))
+        {
+            var existed = await _leadRepository.ExistsByPhoneNumberAsync(normalizedPhone, cancellationToken: cancellationToken);
+            if (existed)
+            {
+                throw new InvalidOperationException(AppErrors.Lead.PhoneNumberAlreadyExists);
+            }
+        }
+
         var actorUserId = UserClaimResolver.TryGetUserId(user);
         var now = DateTime.UtcNow;
         var lead = new Lead
@@ -38,6 +48,7 @@ public class CreateLeadUseCase
             FullName = dto.FullName.Trim(),
             Source = dto.Source,
             Status = dto.Status,
+            Phonenumber = normalizedPhone,
             AssignedTo = dto.AssignedTo,
             Note = dto.Note?.Trim(),
             Metadata = dto.Metadata,

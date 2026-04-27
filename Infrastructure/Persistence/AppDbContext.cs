@@ -345,6 +345,10 @@ public class AppDbContext : DbContext
                 .HasConversion<byte>()
                 .HasDefaultValue(LeadStatus.New);
 
+            entity.Property(e => e.Phonenumber)
+                .HasColumnName("phonenumber")
+                .HasMaxLength(LeadConstants.PhoneNumberMaxLength);
+
             entity.Property(e => e.AssignedTo)
                 .HasColumnName("assigned_to");
 
@@ -384,6 +388,10 @@ public class AppDbContext : DbContext
 
             entity.HasIndex(e => e.AssignedTo)
                 .HasDatabaseName("ix_leads_assigned_to");
+
+            entity.HasIndex(e => e.Phonenumber)
+                .IsUnique()
+                .HasDatabaseName("ux_leads_phonenumber");
 
             entity.HasOne<User>()
                 .WithMany()

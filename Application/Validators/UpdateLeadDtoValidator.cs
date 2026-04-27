@@ -16,6 +16,9 @@ public class UpdateLeadDtoValidator : AbstractValidator<UpdateLeadDto>
             .NotEmpty()
             .MaximumLength(LeadConstants.FullNameMaxLength);
 
+        RuleFor(x => x.Phonenumber)
+            .MaximumLength(LeadConstants.PhoneNumberMaxLength);
+
         RuleFor(x => x.Note)
             .MaximumLength(LeadConstants.NoteMaxLength);
     }

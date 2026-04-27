@@ -37,6 +37,7 @@ public static class AppErrors
         public const string NotFound = "Lead not found.";
         public const string FirstNameRequired = "Lead first name is required.";
         public const string FullNameRequired = "Lead full name is required.";
+        public const string PhoneNumberAlreadyExists = "Lead phonenumber already exists.";
     }
 
     public static class LeadNote
