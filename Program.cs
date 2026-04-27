@@ -188,6 +188,11 @@ builder.Services.AddAuthorization(options =>
         policy.RequireAuthenticatedUser();
         policy.Requirements.Add(new RoleRequirement(RoleIds.Admin));
     });
+    options.AddPolicy("LeadCrud", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.Requirements.Add(new RoleRequirement(RoleIds.Sale));
+    });
 });
 builder.Services.AddSingleton<IAuthorizationHandler, RoleHandler>();
 builder.Services.AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
@@ -202,6 +207,8 @@ builder.Services.AddScoped<IFileUrlResolver, StorageFileUrlResolver>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IBranchRepository, BranchRepository>();
 builder.Services.AddScoped<IBranchUserRepository, BranchUserRepository>();
+builder.Services.AddScoped<ILeadRepository, LeadRepository>();
+builder.Services.AddScoped<ILeadNoteRepository, LeadNoteRepository>();
 builder.Services.AddScoped<CreateUserUseCase>();
 builder.Services.AddScoped<GetUserProfileUseCase>();
 builder.Services.AddScoped<UpsertUserAvatarUseCase>();
@@ -217,6 +224,17 @@ builder.Services.AddScoped<GetBranchUsersUseCase>();
 builder.Services.AddScoped<GetBranchUserByIdUseCase>();
 builder.Services.AddScoped<UpdateBranchUserUseCase>();
 builder.Services.AddScoped<DeleteBranchUserUseCase>();
+builder.Services.AddScoped<CreateLeadUseCase>();
+builder.Services.AddScoped<GetLeadsUseCase>();
+builder.Services.AddScoped<GetLeadByIdUseCase>();
+builder.Services.AddScoped<UpdateLeadUseCase>();
+builder.Services.AddScoped<DeleteLeadUseCase>();
+builder.Services.AddScoped<GetAssignedLeadsByUserUseCase>();
+builder.Services.AddScoped<CreateLeadNoteUseCase>();
+builder.Services.AddScoped<GetLeadNotesUseCase>();
+builder.Services.AddScoped<GetLeadNoteByIdUseCase>();
+builder.Services.AddScoped<UpdateLeadNoteUseCase>();
+builder.Services.AddScoped<DeleteLeadNoteUseCase>();
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("Default")

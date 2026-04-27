@@ -32,6 +32,19 @@ public static class AppErrors
         public const string InvalidStatus = "Branch user status is invalid.";
     }
 
+    public static class Lead
+    {
+        public const string NotFound = "Lead not found.";
+        public const string FirstNameRequired = "Lead first name is required.";
+        public const string FullNameRequired = "Lead full name is required.";
+    }
+
+    public static class LeadNote
+    {
+        public const string NotFound = "Lead note not found.";
+        public const string ContentRequired = "Lead note content is required.";
+    }
+
     public static class External
     {
         public const string AuthServiceCallFailed = "Failed to call auth service.";
