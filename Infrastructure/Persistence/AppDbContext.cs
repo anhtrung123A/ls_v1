@@ -1,5 +1,6 @@
 using app.Domain.Constants;
 using app.Domain.Entities;
+using app.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using FileEntity = app.Domain.Entities.File;
 
@@ -335,12 +336,14 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Source)
                 .HasColumnName("source")
                 .HasColumnType("tinyint unsigned")
-                .HasDefaultValue(LeadSourceConstants.Unknown);
+                .HasConversion<byte>()
+                .HasDefaultValue(LeadSource.Facebook);
 
             entity.Property(e => e.Status)
                 .HasColumnName("status")
                 .HasColumnType("tinyint unsigned")
-                .HasDefaultValue(LeadStatusConstants.New);
+                .HasConversion<byte>()
+                .HasDefaultValue(LeadStatus.New);
 
             entity.Property(e => e.AssignedTo)
                 .HasColumnName("assigned_to");
