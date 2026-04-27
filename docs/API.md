@@ -392,6 +392,167 @@ Base URL: `/api/v1`
 }
 ```
 
+## 13) Create Branch User
+- **Method/Path**: `POST /branch-users`
+- **Auth**: `Bearer JWT` + role `admin` (`roleId = 1`)
+- **Input (JSON body)**:
+```json
+{
+  "firstname": "Jane",
+  "lastname": "Smith",
+  "email": "jane.smith@example.com",
+  "phonenumber": "0908889999",
+  "dateOfBirth": "1999-07-10",
+  "branchId": 1,
+  "roleId": 4
+}
+```
+- **Output**:
+  - `201 Created`: tạo branch user thành công
+  - `400 Bad Request`: thiếu/sai dữ liệu đầu vào
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `403 Forbidden`: không có quyền admin
+  - `409 Conflict`: email đã tồn tại hoặc user đã thuộc branch
+  - `500 Internal Server Error`: lỗi hệ thống
+- **Response mẫu (201)**:
+```json
+{
+  "success": true,
+  "message": "Branch user created successfully.",
+  "data": {
+    "id": 25,
+    "firstname": "Jane",
+    "lastname": "Smith",
+    "email": "jane.smith@example.com",
+    "phonenumber": "0908889999",
+    "dateOfBirth": "1999-07-10",
+    "branchId": 1,
+    "status": 1,
+    "avatarUrl": null
+  }
+}
+```
+
+## 14) Get Branch User List (Paginated)
+- **Method/Path**: `GET /branch-users`
+- **Auth**: `Bearer JWT`
+- **Input (query)**:
+  - `branchId` (`ulong`, optional)
+  - `page` (`int`, optional, default theo `PaginationQueryDto`)
+  - `limit` (`int`, optional, default theo `PaginationQueryDto`)
+- **Output**:
+  - `200 OK`: lấy danh sách branch user thành công
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `500 Internal Server Error`: lỗi hệ thống
+- **Response mẫu (200)**:
+```json
+{
+  "success": true,
+  "message": "Branch users fetched successfully.",
+  "data": {
+    "items": [
+      {
+        "id": 25,
+        "firstname": "Jane",
+        "lastname": "Smith",
+        "email": "jane.smith@example.com",
+        "phonenumber": "0908889999",
+        "dateOfBirth": "1999-07-10",
+        "branchId": 1,
+        "status": 1,
+        "avatarUrl": "http://localhost:9000/app-bucket/avatars/25/8beaa9...e2c1.png"
+      }
+    ],
+    "totalRecords": 1,
+    "currentPage": 1,
+    "limit": 20,
+    "offset": 0
+  }
+}
+```
+
+## 15) Get Branch User By Id
+- **Method/Path**: `GET /branch-users/{id}`
+- **Auth**: `Bearer JWT`
+- **Input**: path param `id` (`long`)
+- **Output**:
+  - `200 OK`: lấy branch user thành công
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `404 Not Found`: không tìm thấy branch user
+  - `500 Internal Server Error`: lỗi hệ thống
+- **Response mẫu (200)**:
+```json
+{
+  "success": true,
+  "message": "Branch user fetched successfully.",
+  "data": {
+    "id": 25,
+    "firstname": "Jane",
+    "lastname": "Smith",
+    "email": "jane.smith@example.com",
+    "phonenumber": "0908889999",
+    "dateOfBirth": "1999-07-10",
+    "branchId": 1,
+    "status": 1,
+    "avatarUrl": "http://localhost:9000/app-bucket/avatars/25/8beaa9...e2c1.png"
+  }
+}
+```
+
+## 16) Update Branch User
+- **Method/Path**: `PUT /branch-users/{id}`
+- **Auth**: `Bearer JWT`
+- **Input**:
+  - path param `id` (`long`)
+  - JSON body:
+```json
+{
+  "status": 2
+}
+```
+- **Output**:
+  - `200 OK`: cập nhật branch user thành công
+  - `400 Bad Request`: thiếu/sai dữ liệu đầu vào
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `404 Not Found`: không tìm thấy branch user
+  - `500 Internal Server Error`: lỗi hệ thống
+- **Response mẫu (200)**:
+```json
+{
+  "success": true,
+  "message": "Branch user updated successfully.",
+  "data": {
+    "id": 25,
+    "firstname": "Jane",
+    "lastname": "Smith",
+    "email": "jane.smith@example.com",
+    "phonenumber": "0908889999",
+    "dateOfBirth": "1999-07-10",
+    "branchId": 1,
+    "status": 2,
+    "avatarUrl": "http://localhost:9000/app-bucket/avatars/25/8beaa9...e2c1.png"
+  }
+}
+```
+
+## 17) Delete Branch User (Soft Delete)
+- **Method/Path**: `DELETE /branch-users/{id}`
+- **Auth**: `Bearer JWT`
+- **Input**: path param `id` (`long`)
+- **Output**:
+  - `200 OK`: xóa mềm branch user thành công
+  - `401 Unauthorized`: thiếu/sai/hết hạn token
+  - `404 Not Found`: không tìm thấy branch user
+  - `500 Internal Server Error`: lỗi hệ thống
+- **Response mẫu (200)**:
+```json
+{
+  "success": true,
+  "message": "Branch user deleted successfully.",
+  "data": true
+}
+```
+
 ## Response format chung
 - **Success**:
 ```json

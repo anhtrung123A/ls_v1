@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using app.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using app.Infrastructure.Persistence;
 namespace app.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260427013303_AddSaleRoleSeed")]
+    partial class AddSaleRoleSeed
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -234,145 +237,6 @@ namespace app.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("files", (string)null);
-                });
-
-            modelBuilder.Entity("app.Domain.Entities.Lead", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint unsigned")
-                        .HasColumnName("id");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<ulong>("Id"));
-
-                    b.Property<ulong?>("AssignedTo")
-                        .HasColumnType("bigint unsigned")
-                        .HasColumnName("assigned_to");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
-
-                    b.Property<ulong?>("CreatedByUserId")
-                        .HasColumnType("bigint unsigned")
-                        .HasColumnName("created_by_user_id");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<string>("FirstName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("first_name");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("varchar(255)")
-                        .HasColumnName("full_name");
-
-                    b.Property<string>("Metadata")
-                        .HasColumnType("json")
-                        .HasColumnName("metadata");
-
-                    b.Property<string>("Note")
-                        .HasMaxLength(2000)
-                        .HasColumnType("varchar(2000)")
-                        .HasColumnName("note");
-
-                    b.Property<byte>("Source")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint unsigned")
-                        .HasDefaultValue((byte)0)
-                        .HasColumnName("source");
-
-                    b.Property<byte>("Status")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint unsigned")
-                        .HasDefaultValue((byte)1)
-                        .HasColumnName("status");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)");
-
-                    b.Property<ulong?>("UpdatedByUserId")
-                        .HasColumnType("bigint unsigned")
-                        .HasColumnName("updated_by_user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssignedTo")
-                        .HasDatabaseName("ix_leads_assigned_to");
-
-                    b.HasIndex("Source")
-                        .HasDatabaseName("ix_leads_source");
-
-                    b.HasIndex("Status")
-                        .HasDatabaseName("ix_leads_status");
-
-                    b.ToTable("leads", (string)null);
-                });
-
-            modelBuilder.Entity("app.Domain.Entities.LeadNote", b =>
-                {
-                    b.Property<ulong>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint unsigned")
-                        .HasColumnName("id");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<ulong>("Id"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("varchar(4000)")
-                        .HasColumnName("content");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("created_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
-
-                    b.Property<ulong?>("CreatedByUserId")
-                        .HasColumnType("bigint unsigned")
-                        .HasColumnName("created_by_user_id");
-
-                    b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("deleted_at");
-
-                    b.Property<ulong>("LeadId")
-                        .HasColumnType("bigint unsigned")
-                        .HasColumnName("lead_id");
-
-                    b.Property<string>("Metadata")
-                        .HasColumnType("json")
-                        .HasColumnName("metadata");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)")
-                        .HasColumnName("updated_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)");
-
-                    b.Property<ulong?>("UpdatedByUserId")
-                        .HasColumnType("bigint unsigned")
-                        .HasColumnName("updated_by_user_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("LeadId")
-                        .HasDatabaseName("ix_lead_notes_lead_id");
-
-                    b.ToTable("lead_notes", (string)null);
                 });
 
             modelBuilder.Entity("app.Domain.Entities.Role", b =>
@@ -608,23 +472,6 @@ namespace app.Infrastructure.Persistence.Migrations
                     b.HasOne("app.Domain.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("app.Domain.Entities.Lead", b =>
-                {
-                    b.HasOne("app.Domain.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("AssignedTo")
-                        .OnDelete(DeleteBehavior.SetNull);
-                });
-
-            modelBuilder.Entity("app.Domain.Entities.LeadNote", b =>
-                {
-                    b.HasOne("app.Domain.Entities.Lead", null)
-                        .WithMany()
-                        .HasForeignKey("LeadId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

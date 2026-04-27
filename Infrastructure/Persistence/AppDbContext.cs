@@ -17,6 +17,8 @@ public class AppDbContext : DbContext
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<Branch> Branches => Set<Branch>();
     public DbSet<BranchUser> BranchUsers => Set<BranchUser>();
+    public DbSet<Lead> Leads => Set<Lead>();
+    public DbSet<LeadNote> LeadNotes => Set<LeadNote>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -175,7 +177,8 @@ public class AppDbContext : DbContext
                 new Role { Id = 3, Name = "operator", CreatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc) },
                 new Role { Id = 4, Name = "teacher", CreatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc) },
                 new Role { Id = 5, Name = "student", CreatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc) },
-                new Role { Id = 6, Name = "parent", CreatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc) }
+                new Role { Id = 6, Name = "parent", CreatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc) },
+                new Role { Id = 7, Name = "sale", CreatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc), UpdatedAt = new DateTime(2026, 4, 23, 0, 0, 0, DateTimeKind.Utc) }
             );
         });
 
@@ -307,6 +310,133 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.ImageFileId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Lead>(entity =>
+        {
+            entity.ToTable("leads");
+            entity.HasKey(e => e.Id);
+            entity.HasQueryFilter(e => e.DeletedAt == null);
+
+            entity.Property(e => e.Id)
+                .HasColumnName("id")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.FirstName)
+                .HasColumnName("first_name")
+                .HasMaxLength(LeadConstants.FirstNameMaxLength)
+                .IsRequired();
+
+            entity.Property(e => e.FullName)
+                .HasColumnName("full_name")
+                .HasMaxLength(LeadConstants.FullNameMaxLength)
+                .IsRequired();
+
+            entity.Property(e => e.Source)
+                .HasColumnName("source")
+                .HasColumnType("tinyint unsigned")
+                .HasDefaultValue(LeadSourceConstants.Unknown);
+
+            entity.Property(e => e.Status)
+                .HasColumnName("status")
+                .HasColumnType("tinyint unsigned")
+                .HasDefaultValue(LeadStatusConstants.New);
+
+            entity.Property(e => e.AssignedTo)
+                .HasColumnName("assigned_to");
+
+            entity.Property(e => e.Note)
+                .HasColumnName("note")
+                .HasMaxLength(LeadConstants.NoteMaxLength);
+
+            entity.Property(e => e.Metadata)
+                .HasColumnName("metadata")
+                .HasColumnType("json");
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)");
+
+            entity.Property(e => e.CreatedByUserId)
+                .HasColumnName("created_by_user_id");
+
+            entity.Property(e => e.UpdatedByUserId)
+                .HasColumnName("updated_by_user_id");
+
+            entity.Property(e => e.DeletedAt)
+                .HasColumnName("deleted_at")
+                .HasColumnType("datetime(6)");
+
+            entity.HasIndex(e => e.Source)
+                .HasDatabaseName("ix_leads_source");
+
+            entity.HasIndex(e => e.Status)
+                .HasDatabaseName("ix_leads_status");
+
+            entity.HasIndex(e => e.AssignedTo)
+                .HasDatabaseName("ix_leads_assigned_to");
+
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(e => e.AssignedTo)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<LeadNote>(entity =>
+        {
+            entity.ToTable("lead_notes");
+            entity.HasKey(e => e.Id);
+            entity.HasQueryFilter(e => e.DeletedAt == null);
+
+            entity.Property(e => e.Id)
+                .HasColumnName("id")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(e => e.LeadId)
+                .HasColumnName("lead_id");
+
+            entity.Property(e => e.Content)
+                .HasColumnName("content")
+                .HasMaxLength(LeadConstants.LeadNoteContentMaxLength)
+                .IsRequired();
+
+            entity.Property(e => e.Metadata)
+                .HasColumnName("metadata")
+                .HasColumnType("json");
+
+            entity.Property(e => e.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
+
+            entity.Property(e => e.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasColumnType("datetime(6)")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6)");
+
+            entity.Property(e => e.CreatedByUserId)
+                .HasColumnName("created_by_user_id");
+
+            entity.Property(e => e.UpdatedByUserId)
+                .HasColumnName("updated_by_user_id");
+
+            entity.Property(e => e.DeletedAt)
+                .HasColumnName("deleted_at")
+                .HasColumnType("datetime(6)");
+
+            entity.HasIndex(e => e.LeadId)
+                .HasDatabaseName("ix_lead_notes_lead_id");
+
+            entity.HasOne<Lead>()
+                .WithMany()
+                .HasForeignKey(e => e.LeadId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<BranchUser>(entity =>

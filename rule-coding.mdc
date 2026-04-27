@@ -177,6 +177,7 @@ Infrastructure --------|
 - `IAuthorizationRequirement` classes must contain data only (for example `RoleId`, `Permission`, etc.), no decision logic.
 - Do not put authorization logic in `RequireClaim(...)` for business authorization rules.
 - Do not hard-code role values like `"2"` in policy/controller; use constants (for example `RoleIds.BranchCrud`).
+- Role constants should include business roles explicitly (for example `RoleIds.Admin`, `RoleIds.BranchCrud`, `RoleIds.Sale`).
 - Register handlers in DI (for example `AddSingleton<IAuthorizationHandler, RoleHandler>()`).
 - Prefer reusable requirement/handler patterns to avoid policy explosion and improve scalability.
 
