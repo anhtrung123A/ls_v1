@@ -1,0 +1,11 @@
+using app.DTOs.Auth;
+
+namespace app.Services.Auth;
+
+public interface IAuthService
+{
+    Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
+    Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+    Task<AuthResponse> RefreshTokenAsync(RefreshTokenRequest request, CancellationToken cancellationToken = default);
+    Task LogoutAsync(LogoutRequest request, CancellationToken cancellationToken = default);
+}

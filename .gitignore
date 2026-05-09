@@ -1,0 +1,108 @@
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bin/
+obj/
+out/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+.vscode/
+.idea/
+
+# Rider
+*.sln.iml
+
+# ASP.NET Core
+appsettings.Development.json
+appsettings.Local.json
+
+# Logs
+logs/
+*.log
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+packages/
+
+# Node modules (nếu có frontend)
+node_modules/
+
+# Environment files
+.env
+.env.*
+
+# Database
+*.mdf
+*.ldf
+*.db
+*.sqlite
+*.sqlite3
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Test results
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# Publish output
+publish/
+
+# Docker
+docker-compose.override.yml
+
+# JetBrains Rider
+.idea/
+
+# Resharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Azure
+.publishsettings
+
+# Temporary files
+tmp/
+temp/
+
+# Entity Framework
+Migrations/*.Designer.cs
+
+# Generated files
+Generated/
+wwwroot/lib/
+
+# Secrets
+secrets.json
+
+# C# cache
+*.cache
+*.pidb
+*.svclog
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+# Blazor
+wwwroot/_framework/
+
+# EF Core local db
+*.db-shm
+*.db-wal
