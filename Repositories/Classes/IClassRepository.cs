@@ -9,5 +9,6 @@ public interface IClassRepository
     Task<ClassResponse?> GetByIdAsync(long id, CancellationToken cancellationToken = default);
     Task<ClassResponse> CreateAsync(ClassRequest request, CancellationToken cancellationToken = default);
     Task<ClassResponse?> UpdateAsync(long id, ClassRequest request, CancellationToken cancellationToken = default);
+    Task<ClassResponse> SetScheduleCreatedAsync(long id, long actorUserId, CancellationToken cancellationToken = default);
     Task DeleteAsync(long id, CancellationToken cancellationToken = default);
 }

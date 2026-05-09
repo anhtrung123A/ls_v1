@@ -7,5 +7,7 @@ public class ClassSchedule
     public long? RoomId { get; set; }
     // monday 1 ... sunday 7
     public byte Weekday { get; set; }
+    public TimeOnly StartTime { get; set; }
+    public TimeOnly EndTime { get; set; }
     public DateTime CreatedAt { get; set; }
 }

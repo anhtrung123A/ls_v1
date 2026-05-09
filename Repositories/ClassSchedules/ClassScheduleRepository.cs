@@ -34,7 +34,9 @@ public class ClassScheduleRepository : IClassScheduleRepository
         {
             ClassId = request.ClassId,
             RoomId = request.RoomId,
-            Weekday = request.Weekday
+            Weekday = request.Weekday,
+            StartTime = request.StartTime,
+            EndTime = request.EndTime
         };
         _db.Add(entity);
         await _db.SaveChangesAsync(cancellationToken);
@@ -50,6 +52,8 @@ public class ClassScheduleRepository : IClassScheduleRepository
         entity.ClassId = request.ClassId;
         entity.RoomId = request.RoomId;
         entity.Weekday = request.Weekday;
+        entity.StartTime = request.StartTime;
+        entity.EndTime = request.EndTime;
         await _db.SaveChangesAsync(cancellationToken);
         return await GetByIdAsync(id, cancellationToken);
     }
@@ -68,6 +72,10 @@ public class ClassScheduleRepository : IClassScheduleRepository
         if (query.ClassId.HasValue) q = q.Where(x => x.ClassId == query.ClassId.Value);
         if (query.Weekday.HasValue) q = q.Where(x => x.Weekday == query.Weekday.Value);
         if (query.RoomId.HasValue) q = q.Where(x => x.RoomId == query.RoomId.Value);
+        if (query.StartTimeFrom.HasValue) q = q.Where(x => x.StartTime >= query.StartTimeFrom.Value);
+        if (query.StartTimeTo.HasValue) q = q.Where(x => x.StartTime <= query.StartTimeTo.Value);
+        if (query.EndTimeFrom.HasValue) q = q.Where(x => x.EndTime >= query.EndTimeFrom.Value);
+        if (query.EndTimeTo.HasValue) q = q.Where(x => x.EndTime <= query.EndTimeTo.Value);
         return ApplyOrdering(q, query.OrderBy, query.OrderDir);
     }
 
@@ -81,6 +89,7 @@ public class ClassScheduleRepository : IClassScheduleRepository
     private async Task Validate(ClassScheduleRequest request, CancellationToken cancellationToken)
     {
         if (request.Weekday < 1 || request.Weekday > 7) throw new InvalidOperationException("weekday must be in range 1..7.");
+        if (request.StartTime >= request.EndTime) throw new InvalidOperationException("start_time must be earlier than end_time.");
         var classExists = await _db.Set<ClassEntity>().AnyAsync(x => x.Id == request.ClassId, cancellationToken);
         if (!classExists) throw new InvalidOperationException("Class does not exist.");
 
@@ -98,6 +107,8 @@ public class ClassScheduleRepository : IClassScheduleRepository
         return key switch
         {
             "weekday" => asc ? q.OrderBy(x => x.Weekday) : q.OrderByDescending(x => x.Weekday),
+            "starttime" => asc ? q.OrderBy(x => x.StartTime) : q.OrderByDescending(x => x.StartTime),
+            "endtime" => asc ? q.OrderBy(x => x.EndTime) : q.OrderByDescending(x => x.EndTime),
             _ => asc ? q.OrderBy(x => x.CreatedAt) : q.OrderByDescending(x => x.CreatedAt)
         };
     }
@@ -108,6 +119,8 @@ public class ClassScheduleRepository : IClassScheduleRepository
         ClassId = x.ClassId,
         RoomId = x.RoomId,
         Weekday = x.Weekday,
+        StartTime = x.StartTime,
+        EndTime = x.EndTime,
         CreatedAt = x.CreatedAt
     };
 }

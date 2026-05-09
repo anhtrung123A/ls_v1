@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using app.Data.EF;
 
@@ -11,9 +12,11 @@ using app.Data.EF;
 namespace app.Data.EF.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260509145404_AddStartEndTimeToClassSchedules")]
+    partial class AddStartEndTimeToClassSchedules
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -167,52 +170,6 @@ namespace app.Data.EF.Migrations
                     b.HasIndex("ExpiresAt");
 
                     b.ToTable("batch_job_locks", (string)null);
-                });
-
-            modelBuilder.Entity("app.Data.EF.Entities.ClassAttendance", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("AbsentReason")
-                        .HasColumnType("text")
-                        .HasColumnName("absent_reason");
-
-                    b.Property<long>("ClassSessionId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("class_session_id");
-
-                    b.Property<long>("ClassStudentId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("class_student_id");
-
-                    b.Property<bool?>("IsAbsent")
-                        .HasColumnType("tinyint(1)")
-                        .HasColumnName("is_absent");
-
-                    b.Property<DateTime>("RecordedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp")
-                        .HasColumnName("recorded_at")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<long?>("RecordedBy")
-                        .HasColumnType("bigint")
-                        .HasColumnName("recorded_by");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClassSessionId");
-
-                    b.HasIndex("ClassStudentId");
-
-                    b.HasIndex("RecordedBy");
-
-                    b.ToTable("class_attendances", (string)null);
                 });
 
             modelBuilder.Entity("app.Data.EF.Entities.ClassEntity", b =>
@@ -1455,26 +1412,6 @@ namespace app.Data.EF.Migrations
                         .HasForeignKey("ExecutionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("app.Data.EF.Entities.ClassAttendance", b =>
-                {
-                    b.HasOne("app.Data.EF.Entities.ClassSession", null)
-                        .WithMany()
-                        .HasForeignKey("ClassSessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("app.Data.EF.Entities.ClassStudent", null)
-                        .WithMany()
-                        .HasForeignKey("ClassStudentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("app.Data.EF.Entities.User", null)
-                        .WithMany()
-                        .HasForeignKey("RecordedBy")
-                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("app.Data.EF.Entities.ClassEntity", b =>

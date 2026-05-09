@@ -87,6 +87,56 @@ public class ClassRepository : IClassRepository
         return await GetByIdAsync(id, cancellationToken);
     }
 
+    public async Task<ClassResponse> SetScheduleCreatedAsync(long id, long actorUserId, CancellationToken cancellationToken = default)
+    {
+        var entity = await _db.Set<ClassEntity>().FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        if (entity is null) throw new KeyNotFoundException("Class not found.");
+        if (!entity.StartDate.HasValue || !entity.EndDate.HasValue) throw new InvalidOperationException("Class must have start_date and end_date.");
+        if (entity.StartDate > entity.EndDate) throw new InvalidOperationException("Class start_date must be earlier than or equal to end_date.");
+
+        var schedules = await _db.Set<ClassSchedule>()
+            .AsNoTracking()
+            .Where(x => x.ClassId == id)
+            .ToListAsync(cancellationToken);
+
+        if (schedules.Count == 0) throw new InvalidOperationException("Class must have at least one class_schedule.");
+
+        var sessionExists = await _db.Set<ClassSession>().AnyAsync(x => x.ClassId == id, cancellationToken);
+        if (sessionExists) throw new InvalidOperationException("Class sessions already created for this class.");
+
+        var sessions = new List<ClassSession>();
+        for (var date = entity.StartDate.Value; date <= entity.EndDate.Value; date = date.AddDays(1))
+        {
+            var weekday = ToDbWeekday(date.DayOfWeek);
+            foreach (var schedule in schedules.Where(s => s.Weekday == weekday))
+            {
+                sessions.Add(new ClassSession
+                {
+                    ClassId = id,
+                    SessionDate = date,
+                    StartTime = schedule.StartTime,
+                    EndTime = schedule.EndTime,
+                    TeacherId = entity.TeacherId,
+                    RoomId = schedule.RoomId,
+                    Type = entity.Type == 2 ? (byte)2 : (byte)1,
+                    Status = 1,
+                    CreatedBy = actorUserId,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+        }
+
+        if (sessions.Count == 0) throw new InvalidOperationException("No class_session can be generated from current class_schedules.");
+
+        await using var tx = await _db.Database.BeginTransactionAsync(cancellationToken);
+        _db.Set<ClassSession>().AddRange(sessions);
+        entity.Status = 2; // schedule_created
+        await _db.SaveChangesAsync(cancellationToken);
+        await tx.CommitAsync(cancellationToken);
+
+        return await GetByIdAsync(id, cancellationToken) ?? throw new InvalidOperationException("Class not found after update.");
+    }
+
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)
     {
         var entity = await _db.Set<ClassEntity>().FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
@@ -143,4 +193,10 @@ public class ClassRepository : IClassRepository
         CreatedBy = x.CreatedBy,
         CreatedAt = x.CreatedAt
     };
+
+    private static byte ToDbWeekday(DayOfWeek dayOfWeek)
+    {
+        var day = (int)dayOfWeek;
+        return (byte)(day == 0 ? 7 : day);
+    }
 }

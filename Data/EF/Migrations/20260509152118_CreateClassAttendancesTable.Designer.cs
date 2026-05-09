@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using app.Data.EF;
 
@@ -11,9 +12,11 @@ using app.Data.EF;
 namespace app.Data.EF.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260509152118_CreateClassAttendancesTable")]
+    partial class CreateClassAttendancesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -178,21 +181,13 @@ namespace app.Data.EF.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("AbsentReason")
+                    b.Property<long>("EnrollmentId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("enrollment_id");
+
+                    b.Property<string>("Note")
                         .HasColumnType("text")
-                        .HasColumnName("absent_reason");
-
-                    b.Property<long>("ClassSessionId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("class_session_id");
-
-                    b.Property<long>("ClassStudentId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("class_student_id");
-
-                    b.Property<bool?>("IsAbsent")
-                        .HasColumnType("tinyint(1)")
-                        .HasColumnName("is_absent");
+                        .HasColumnName("note");
 
                     b.Property<DateTime>("RecordedAt")
                         .ValueGeneratedOnAdd()
@@ -204,13 +199,26 @@ namespace app.Data.EF.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("recorded_by");
 
+                    b.Property<DateOnly>("SessionDate")
+                        .HasColumnType("date")
+                        .HasColumnName("session_date");
+
+                    b.Property<int?>("SessionNumber")
+                        .HasColumnType("int")
+                        .HasColumnName("session_number");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("status");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ClassSessionId");
-
-                    b.HasIndex("ClassStudentId");
+                    b.HasIndex("EnrollmentId");
 
                     b.HasIndex("RecordedBy");
+
+                    b.HasIndex("SessionDate");
 
                     b.ToTable("class_attendances", (string)null);
                 });
@@ -1459,15 +1467,9 @@ namespace app.Data.EF.Migrations
 
             modelBuilder.Entity("app.Data.EF.Entities.ClassAttendance", b =>
                 {
-                    b.HasOne("app.Data.EF.Entities.ClassSession", null)
+                    b.HasOne("app.Data.EF.Entities.Enrollment", null)
                         .WithMany()
-                        .HasForeignKey("ClassSessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("app.Data.EF.Entities.ClassStudent", null)
-                        .WithMany()
-                        .HasForeignKey("ClassStudentId")
+                        .HasForeignKey("EnrollmentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

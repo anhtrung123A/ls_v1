@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using app.Data.EF;
 
@@ -11,9 +12,11 @@ using app.Data.EF;
 namespace app.Data.EF.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260509152429_AlignClassAttendancesWithDbml")]
+    partial class AlignClassAttendancesWithDbml
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -186,10 +189,6 @@ namespace app.Data.EF.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("class_session_id");
 
-                    b.Property<long>("ClassStudentId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("class_student_id");
-
                     b.Property<bool?>("IsAbsent")
                         .HasColumnType("tinyint(1)")
                         .HasColumnName("is_absent");
@@ -207,8 +206,6 @@ namespace app.Data.EF.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ClassSessionId");
-
-                    b.HasIndex("ClassStudentId");
 
                     b.HasIndex("RecordedBy");
 
@@ -1462,12 +1459,6 @@ namespace app.Data.EF.Migrations
                     b.HasOne("app.Data.EF.Entities.ClassSession", null)
                         .WithMany()
                         .HasForeignKey("ClassSessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("app.Data.EF.Entities.ClassStudent", null)
-                        .WithMany()
-                        .HasForeignKey("ClassStudentId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

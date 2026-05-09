@@ -65,6 +65,14 @@ public class ClassesController : ControllerBase
         return Results.Ok(ApiResponse.Ok(result, "Update class successfully."));
     }
 
+    [HttpPost("{id:long}/set_schedule_created")]
+    public async Task<IResult> SetScheduleCreated(long id, CancellationToken cancellationToken)
+    {
+        await EnsureClassPermissionAsync(cancellationToken);
+        var result = await _repo.SetScheduleCreatedAsync(id, GetCurrentUserId(), cancellationToken);
+        return Results.Ok(ApiResponse.Ok(result, "Set class status schedule_created and generate class sessions successfully."));
+    }
+
     [HttpDelete("{id:long}")]
     public async Task<IResult> Delete(long id, CancellationToken cancellationToken)
     {

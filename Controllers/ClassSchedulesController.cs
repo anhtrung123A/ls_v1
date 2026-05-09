@@ -53,7 +53,9 @@ public class ClassSchedulesController : ControllerBase
         {
             ClassId = request.ClassId,
             RoomId = request.RoomId,
-            Weekday = request.Weekday
+            Weekday = request.Weekday,
+            StartTime = request.StartTime,
+            EndTime = request.EndTime
         }, cancellationToken);
         return Results.Ok(ApiResponse.Ok(result, "Create class schedule successfully."));
     }

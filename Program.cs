@@ -23,6 +23,7 @@ using app.Repositories.ClassSchedules;
 using app.Repositories.Enrollments;
 using app.Repositories.Invoices;
 using app.Repositories.Payments;
+using app.Repositories.ClassAttendances;
 using app.Services.Auth;
 using app.Services.Email;
 
@@ -110,6 +111,7 @@ builder.Services.AddScoped<IClassScheduleRepository, ClassScheduleRepository>();
 builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
 builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
+builder.Services.AddScoped<IClassAttendanceRepository, ClassAttendanceRepository>();
 
 var app = builder.Build();
 app.Logger.LogInformation("MySQL connection: {ConnectionString}", MaskSensitiveConnectionString(connectionString));
