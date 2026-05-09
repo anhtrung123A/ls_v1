@@ -13,6 +13,9 @@ public class AppDbContext : DbContext
     public DbSet<Staff> Staff => Set<Staff>();
     public DbSet<Student> Students => Set<Student>();
     public DbSet<Lead> Leads => Set<Lead>();
+    public DbSet<BatchJobExecution> BatchJobExecutions => Set<BatchJobExecution>();
+    public DbSet<BatchJobItem> BatchJobItems => Set<BatchJobItem>();
+    public DbSet<BatchJobLock> BatchJobLocks => Set<BatchJobLock>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -274,6 +277,154 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(l => l.ConvertedTo)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<BatchJobExecution>(entity =>
+        {
+            entity.ToTable("batch_job_executions");
+
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .HasColumnName("id")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(x => x.JobName)
+                .HasColumnName("job_name")
+                .HasMaxLength(255)
+                .IsRequired();
+
+            entity.Property(x => x.Status)
+                .HasColumnName("status")
+                .HasColumnType("tinyint")
+                .IsRequired();
+
+            entity.Property(x => x.TriggeredBy)
+                .HasColumnName("triggered_by")
+                .HasColumnType("tinyint");
+
+            entity.Property(x => x.StartedAt)
+                .HasColumnName("started_at")
+                .HasColumnType("datetime")
+                .IsRequired();
+
+            entity.Property(x => x.FinishedAt)
+                .HasColumnName("finished_at")
+                .HasColumnType("datetime");
+
+            entity.Property(x => x.DurationMs)
+                .HasColumnName("duration_ms");
+
+            entity.Property(x => x.ErrorMessage)
+                .HasColumnName("error_message")
+                .HasColumnType("text");
+
+            entity.Property(x => x.ErrorTrace)
+                .HasColumnName("error_trace")
+                .HasColumnType("text");
+
+            entity.Property(x => x.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("datetime")
+                .IsRequired();
+
+            entity.Property(x => x.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasColumnType("datetime")
+                .IsRequired();
+
+            entity.HasIndex(x => x.JobName);
+            entity.HasIndex(x => x.Status);
+            entity.HasIndex(x => x.StartedAt);
+        });
+
+        modelBuilder.Entity<BatchJobItem>(entity =>
+        {
+            entity.ToTable("batch_job_items");
+
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .HasColumnName("id")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(x => x.ExecutionId)
+                .HasColumnName("execution_id")
+                .IsRequired();
+
+            entity.Property(x => x.TargetType)
+                .HasColumnName("target_type")
+                .HasMaxLength(100);
+
+            entity.Property(x => x.TargetId)
+                .HasColumnName("target_id");
+
+            entity.Property(x => x.Status)
+                .HasColumnName("status")
+                .HasColumnType("tinyint")
+                .IsRequired();
+
+            entity.Property(x => x.ErrorMessage)
+                .HasColumnName("error_message")
+                .HasColumnType("text");
+
+            entity.Property(x => x.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("datetime")
+                .IsRequired();
+
+            entity.Property(x => x.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasColumnType("datetime")
+                .IsRequired();
+
+            entity.HasIndex(x => x.ExecutionId);
+            entity.HasIndex(x => new { x.TargetType, x.TargetId });
+            entity.HasIndex(x => x.Status);
+
+            entity.HasOne<BatchJobExecution>()
+                .WithMany()
+                .HasForeignKey(x => x.ExecutionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<BatchJobLock>(entity =>
+        {
+            entity.ToTable("batch_job_locks");
+
+            entity.HasKey(x => x.JobName);
+
+            entity.Property(x => x.JobName)
+                .HasColumnName("job_name")
+                .HasMaxLength(255)
+                .IsRequired();
+
+            entity.Property(x => x.LockedAt)
+                .HasColumnName("locked_at")
+                .HasColumnType("datetime")
+                .IsRequired();
+
+            entity.Property(x => x.LockedBy)
+                .HasColumnName("locked_by")
+                .HasMaxLength(255)
+                .IsRequired();
+
+            entity.Property(x => x.ExpiresAt)
+                .HasColumnName("expires_at")
+                .HasColumnType("datetime")
+                .IsRequired();
+
+            entity.Property(x => x.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("datetime")
+                .IsRequired();
+
+            entity.Property(x => x.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasColumnType("datetime")
+                .IsRequired();
+
+            entity.HasIndex(x => x.ExpiresAt);
         });
 
         base.OnModelCreating(modelBuilder);
