@@ -23,6 +23,7 @@ public class AppDbContext : DbContext
     public DbSet<Room> Rooms => Set<Room>();
     public DbSet<ClassEntity> Classes => Set<ClassEntity>();
     public DbSet<ClassSchedule> ClassSchedules => Set<ClassSchedule>();
+    public DbSet<Enrollment> Enrollments => Set<Enrollment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -665,6 +666,28 @@ public class AppDbContext : DbContext
             entity.HasOne<ClassEntity>().WithMany().HasForeignKey(x => x.ClassId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne<User>().WithMany().HasForeignKey(x => x.TeacherId).OnDelete(DeleteBehavior.SetNull);
             entity.HasOne<Room>().WithMany().HasForeignKey(x => x.RoomId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Enrollment>(entity =>
+        {
+            entity.ToTable("enrollments");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(x => x.StudentId).HasColumnName("student_id").IsRequired();
+            entity.Property(x => x.ClassId).HasColumnName("class_id").IsRequired();
+            entity.Property(x => x.Status).HasColumnName("status").HasColumnType("tinyint").HasDefaultValue((byte)1);
+            entity.Property(x => x.TuitionFee).HasColumnName("tuition_fee").HasPrecision(12, 2);
+            entity.Property(x => x.Discount).HasColumnName("discount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.DiscountReason).HasColumnName("discount_reason").HasColumnType("text");
+            entity.Property(x => x.FinalFee).HasColumnName("final_fee").HasPrecision(12, 2);
+            entity.Property(x => x.EnrolledBy).HasColumnName("enrolled_by");
+            entity.Property(x => x.EnrolledAt).HasColumnName("enrolled_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(x => x.CompletedAt).HasColumnName("completed_at").HasColumnType("timestamp");
+            entity.Property(x => x.Notes).HasColumnName("notes").HasColumnType("text");
+            entity.HasIndex(x => new { x.StudentId, x.ClassId }).IsUnique();
+            entity.HasOne<Student>().WithMany().HasForeignKey(x => x.StudentId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<ClassEntity>().WithMany().HasForeignKey(x => x.ClassId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Staff>().WithMany().HasForeignKey(x => x.EnrolledBy).OnDelete(DeleteBehavior.SetNull);
         });
 
         base.OnModelCreating(modelBuilder);
