@@ -175,6 +175,8 @@ public class LeadRepository : ILeadRepository
         lead.ConvertedTo = student.Id;
         lead.UpdatedAt = convertedAt;
 
+        await CreateConvertedLeadKpiRecordAsync(lead, convertedAt, cancellationToken);
+
         await _dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
@@ -185,6 +187,57 @@ public class LeadRepository : ILeadRepository
             LeadStatus = lead.Status,
             ConvertedAt = convertedAt
         };
+    }
+
+    private async Task CreateConvertedLeadKpiRecordAsync(Lead lead, DateTime convertedAt, CancellationToken cancellationToken)
+    {
+        if (!lead.AssignedTo.HasValue)
+        {
+            return;
+        }
+
+        var staffId = lead.AssignedTo.Value;
+        var existed = await _dbContext.StaffKpiRecords
+            .AnyAsync(x => x.StaffId == staffId && x.LeadId == lead.Id && x.Type == 1, cancellationToken);
+
+        if (existed)
+        {
+            return;
+        }
+
+        var unitAmount = 0m;
+        var assignedStaffUserId = await _dbContext.Staff
+            .AsNoTracking()
+            .Where(x => x.Id == staffId)
+            .Select(x => (long?)x.UserId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (assignedStaffUserId.HasValue)
+        {
+            var convertedDate = DateOnly.FromDateTime(convertedAt);
+            unitAmount = await _dbContext.SalaryConfigs
+                .AsNoTracking()
+                .Where(x =>
+                    x.UserId == assignedStaffUserId.Value &&
+                    x.IsActive &&
+                    x.EffectiveFrom <= convertedDate &&
+                    (!x.EffectiveTo.HasValue || x.EffectiveTo.Value >= convertedDate))
+                .OrderByDescending(x => x.EffectiveFrom)
+                .Select(x => (decimal?)x.ConvertedLeadRate)
+                .FirstOrDefaultAsync(cancellationToken) ?? 0m;
+        }
+
+        _dbContext.StaffKpiRecords.Add(new StaffKpiRecord
+        {
+            StaffId = staffId,
+            LeadId = lead.Id,
+            Month = (byte)convertedAt.Month,
+            Year = convertedAt.Year,
+            Type = 1,
+            Quantity = 1,
+            UnitAmount = unitAmount,
+            TotalAmount = unitAmount
+        });
     }
 
     public async Task DeleteAsync(long id, CancellationToken cancellationToken = default)

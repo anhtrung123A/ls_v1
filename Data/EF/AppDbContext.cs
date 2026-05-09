@@ -29,6 +29,10 @@ public class AppDbContext : DbContext
     public DbSet<ClassStudent> ClassStudents => Set<ClassStudent>();
     public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<Payment> Payments => Set<Payment>();
+    public DbSet<SalaryConfig> SalaryConfigs => Set<SalaryConfig>();
+    public DbSet<Payroll> Payrolls => Set<Payroll>();
+    public DbSet<PayrollItem> PayrollItems => Set<PayrollItem>();
+    public DbSet<StaffKpiRecord> StaffKpiRecords => Set<StaffKpiRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -811,6 +815,101 @@ public class AppDbContext : DbContext
             entity.HasIndex(x => x.PaidAt);
             entity.HasOne<Invoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<Staff>().WithMany().HasForeignKey(x => x.CollectedBy).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<SalaryConfig>(entity =>
+        {
+            entity.ToTable("salary_configs");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(x => x.UserId).HasColumnName("user_id").IsRequired();
+            entity.Property(x => x.SalaryType).HasColumnName("salary_type").HasColumnType("tinyint").IsRequired();
+            entity.Property(x => x.BaseSalary).HasColumnName("base_salary").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.TeachingRate).HasColumnName("teaching_rate").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.ConvertedLeadRate).HasColumnName("converted_lead_rate").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.EffectiveFrom).HasColumnName("effective_from").HasColumnType("date").IsRequired();
+            entity.Property(x => x.EffectiveTo).HasColumnName("effective_to").HasColumnType("date");
+            entity.Property(x => x.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(x => x.UserId);
+            entity.HasIndex(x => x.EffectiveFrom);
+            entity.HasIndex(x => x.IsActive);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<Payroll>(entity =>
+        {
+            entity.ToTable("payrolls");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(x => x.UserId).HasColumnName("user_id").IsRequired();
+            entity.Property(x => x.SalaryConfigId).HasColumnName("salary_config_id");
+            entity.Property(x => x.Month).HasColumnName("month").HasColumnType("tinyint").IsRequired();
+            entity.Property(x => x.Year).HasColumnName("year").IsRequired();
+            entity.Property(x => x.BaseAmount).HasColumnName("base_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.TeachingAmount).HasColumnName("teaching_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.KpiAmount).HasColumnName("kpi_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.BonusAmount).HasColumnName("bonus_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.DeductionAmount).HasColumnName("deduction_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.GrossAmount).HasColumnName("gross_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.NetAmount).HasColumnName("net_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.Status).HasColumnName("status").HasColumnType("tinyint").HasDefaultValue((byte)1);
+            entity.Property(x => x.GeneratedAt).HasColumnName("generated_at").HasColumnType("timestamp");
+            entity.Property(x => x.ConfirmedAt).HasColumnName("confirmed_at").HasColumnType("timestamp");
+            entity.Property(x => x.PaidAt).HasColumnName("paid_at").HasColumnType("timestamp");
+            entity.Property(x => x.Note).HasColumnName("note").HasColumnType("text");
+            entity.Property(x => x.CreatedBy).HasColumnName("created_by");
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(x => new { x.UserId, x.Month, x.Year }).IsUnique();
+            entity.HasIndex(x => x.Status);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<SalaryConfig>().WithMany().HasForeignKey(x => x.SalaryConfigId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.CreatedBy).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<PayrollItem>(entity =>
+        {
+            entity.ToTable("payroll_items");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(x => x.PayrollId).HasColumnName("payroll_id").IsRequired();
+            entity.Property(x => x.Type).HasColumnName("type").HasColumnType("tinyint").IsRequired();
+            entity.Property(x => x.Quantity).HasColumnName("quantity").HasPrecision(10, 2);
+            entity.Property(x => x.UnitAmount).HasColumnName("unit_amount").HasPrecision(12, 2);
+            entity.Property(x => x.Amount).HasColumnName("amount").HasPrecision(12, 2).IsRequired();
+            entity.Property(x => x.ReferenceType).HasColumnName("reference_type").HasMaxLength(100);
+            entity.Property(x => x.ReferenceId).HasColumnName("reference_id");
+            entity.Property(x => x.Description).HasColumnName("description").HasColumnType("text");
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(x => x.PayrollId);
+            entity.HasIndex(x => x.Type);
+            entity.HasIndex(x => new { x.ReferenceType, x.ReferenceId });
+            entity.HasOne<Payroll>().WithMany().HasForeignKey(x => x.PayrollId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<StaffKpiRecord>(entity =>
+        {
+            entity.ToTable("staff_kpi_records");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(x => x.StaffId).HasColumnName("staff_id").IsRequired();
+            entity.Property(x => x.LeadId).HasColumnName("lead_id");
+            entity.Property(x => x.Month).HasColumnName("month").HasColumnType("tinyint").IsRequired();
+            entity.Property(x => x.Year).HasColumnName("year").IsRequired();
+            entity.Property(x => x.Type).HasColumnName("type").HasColumnType("tinyint").HasDefaultValue((byte)1);
+            entity.Property(x => x.Quantity).HasColumnName("quantity").HasDefaultValue(1);
+            entity.Property(x => x.UnitAmount).HasColumnName("unit_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.TotalAmount).HasColumnName("total_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.Note).HasColumnName("note").HasColumnType("text");
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(x => x.StaffId);
+            entity.HasIndex(x => x.LeadId);
+            entity.HasIndex(x => new { x.StaffId, x.Month, x.Year });
+            entity.HasOne<Staff>().WithMany().HasForeignKey(x => x.StaffId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Lead>().WithMany().HasForeignKey(x => x.LeadId).OnDelete(DeleteBehavior.SetNull);
         });
 
         base.OnModelCreating(modelBuilder);
