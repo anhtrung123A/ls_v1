@@ -37,6 +37,27 @@ public class EmailService : IEmailService
         await SendEmailAsync(toEmail, "Your staff account is ready", body, cancellationToken);
     }
 
+    public async Task SendStudentAccountCreatedAsync(
+        string toEmail,
+        string fullName,
+        string password,
+        string studentCode,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureSmtpConfigured();
+
+        var templatePath = Path.Combine(_environment.ContentRootPath, "Views", "Emails", "StudentCreated.html");
+        var template = await File.ReadAllTextAsync(templatePath, cancellationToken);
+
+        var body = template
+            .Replace("{{FullName}}", WebUtility.HtmlEncode(fullName))
+            .Replace("{{Email}}", WebUtility.HtmlEncode(toEmail))
+            .Replace("{{Password}}", WebUtility.HtmlEncode(password))
+            .Replace("{{StudentCode}}", WebUtility.HtmlEncode(studentCode));
+
+        await SendEmailAsync(toEmail, "Your student account is ready", body, cancellationToken);
+    }
+
     public async Task SendOtpAsync(
         string toEmail,
         string otp,

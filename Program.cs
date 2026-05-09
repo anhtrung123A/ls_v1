@@ -11,6 +11,8 @@ using app.Common.Filters;
 using app.Middlewares;
 using app.Repositories.Staff;
 using app.Repositories.Users;
+using app.Repositories.Leads;
+using app.Repositories.Students;
 using app.Services.Auth;
 using app.Services.Email;
 
@@ -86,6 +88,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ILeadRepository, LeadRepository>();
+builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 
 var app = builder.Build();
 app.Logger.LogInformation("MySQL connection: {ConnectionString}", MaskSensitiveConnectionString(connectionString));

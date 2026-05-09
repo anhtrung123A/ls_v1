@@ -12,6 +12,7 @@ public class AppDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Staff> Staff => Set<Staff>();
     public DbSet<Student> Students => Set<Student>();
+    public DbSet<Lead> Leads => Set<Lead>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -127,8 +128,7 @@ public class AppDbContext : DbContext
                 .ValueGeneratedOnAdd();
 
             entity.Property(s => s.UserId)
-                .HasColumnName("user_id")
-                .IsRequired();
+                .HasColumnName("user_id");
 
             entity.Property(s => s.StudentCode)
                 .HasColumnName("student_code")
@@ -194,6 +194,85 @@ public class AppDbContext : DbContext
             entity.HasOne<Staff>()
                 .WithMany()
                 .HasForeignKey(s => s.AssignedStaffId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Lead>(entity =>
+        {
+            entity.ToTable("leads");
+
+            entity.HasKey(l => l.Id);
+
+            entity.Property(l => l.Id)
+                .HasColumnName("id")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(l => l.FullName)
+                .HasColumnName("full_name")
+                .HasMaxLength(150)
+                .IsRequired();
+
+            entity.Property(l => l.Phone)
+                .HasColumnName("phone")
+                .HasMaxLength(20);
+
+            entity.Property(l => l.Email)
+                .HasColumnName("email")
+                .HasMaxLength(150);
+
+            entity.Property(l => l.Source)
+                .HasColumnName("source")
+                .HasColumnType("tinyint");
+
+            entity.Property(l => l.Campaign)
+                .HasColumnName("campaign")
+                .HasMaxLength(200);
+
+            entity.Property(l => l.Interest)
+                .HasColumnName("interest")
+                .HasColumnType("text");
+
+            entity.Property(l => l.Status)
+                .HasColumnName("status")
+                .HasColumnType("tinyint")
+                .HasDefaultValue((byte)1);
+
+            entity.Property(l => l.LostReason)
+                .HasColumnName("lost_reason")
+                .HasColumnType("text");
+
+            entity.Property(l => l.AssignedTo)
+                .HasColumnName("assigned_to");
+
+            entity.Property(l => l.ConvertedTo)
+                .HasColumnName("converted_to");
+
+            entity.Property(l => l.Note)
+                .HasColumnName("note")
+                .HasColumnType("text");
+
+            entity.Property(l => l.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("timestamp")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.Property(l => l.UpdatedAt)
+                .HasColumnName("updated_at")
+                .HasColumnType("timestamp")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.Property(l => l.ConvertedAt)
+                .HasColumnName("converted_at")
+                .HasColumnType("timestamp");
+
+            entity.HasOne<Staff>()
+                .WithMany()
+                .HasForeignKey(l => l.AssignedTo)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne<Student>()
+                .WithMany()
+                .HasForeignKey(l => l.ConvertedTo)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 

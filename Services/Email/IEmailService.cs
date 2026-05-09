@@ -9,6 +9,13 @@ public interface IEmailService
         string staffCode,
         CancellationToken cancellationToken = default);
 
+    Task SendStudentAccountCreatedAsync(
+        string toEmail,
+        string fullName,
+        string password,
+        string studentCode,
+        CancellationToken cancellationToken = default);
+
     Task SendOtpAsync(
         string toEmail,
         string otp,

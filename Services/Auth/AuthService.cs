@@ -109,7 +109,14 @@ public class AuthService : IAuthService
 
     private async Task<AuthResponse> CreateAuthResponseAsync(User user, CancellationToken cancellationToken)
     {
-        var (accessToken, accessTokenExpiresAt) = _jwtTokenService.GenerateAccessToken(user);
+        var staff = await _dbContext.Staff
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.UserId == user.Id, cancellationToken);
+
+        var (accessToken, accessTokenExpiresAt) = _jwtTokenService.GenerateAccessToken(
+            user,
+            staffId: staff?.Id,
+            department: staff?.Department);
         var refreshToken = _jwtTokenService.GenerateRefreshToken();
         var refreshExpiry = TimeSpan.FromDays(_jwtOptions.RefreshTokenDays);
 
