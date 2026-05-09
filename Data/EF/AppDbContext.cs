@@ -656,20 +656,11 @@ public class AppDbContext : DbContext
             entity.HasKey(x => x.Id);
             entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
             entity.Property(x => x.ClassId).HasColumnName("class_id").IsRequired();
-            entity.Property(x => x.TeacherId).HasColumnName("teacher_id");
             entity.Property(x => x.RoomId).HasColumnName("room_id");
             entity.Property(x => x.Weekday).HasColumnName("weekday").HasColumnType("tinyint").IsRequired();
-            entity.Property(x => x.StartTime).HasColumnName("start_time").HasColumnType("time").IsRequired();
-            entity.Property(x => x.EndTime).HasColumnName("end_time").HasColumnType("time").IsRequired();
-            entity.Property(x => x.StartDate).HasColumnName("start_date").HasColumnType("date");
-            entity.Property(x => x.EndDate).HasColumnName("end_date").HasColumnType("date");
-            entity.Property(x => x.OnlineLink).HasColumnName("online_link").HasColumnType("text");
-            entity.Property(x => x.Type).HasColumnName("type").HasColumnType("tinyint").HasDefaultValue((byte)1);
-            entity.Property(x => x.IsActive).HasColumnName("is_active").HasDefaultValue(true);
             entity.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
-            entity.HasIndex(x => new { x.ClassId, x.Weekday, x.StartTime, x.EndTime });
+            entity.HasIndex(x => new { x.ClassId, x.Weekday });
             entity.HasOne<ClassEntity>().WithMany().HasForeignKey(x => x.ClassId).OnDelete(DeleteBehavior.Cascade);
-            entity.HasOne<User>().WithMany().HasForeignKey(x => x.TeacherId).OnDelete(DeleteBehavior.SetNull);
             entity.HasOne<Room>().WithMany().HasForeignKey(x => x.RoomId).OnDelete(DeleteBehavior.SetNull);
         });
 

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using app.Data.EF;
 
@@ -11,9 +12,11 @@ using app.Data.EF;
 namespace app.Data.EF.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260509141707_RemoveTeacherIdFromClassSchedules")]
+    partial class RemoveTeacherIdFromClassSchedules
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -272,9 +275,41 @@ namespace app.Data.EF.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date")
+                        .HasColumnName("end_date");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time")
+                        .HasColumnName("end_time");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("OnlineLink")
+                        .HasColumnType("text")
+                        .HasColumnName("online_link");
+
                     b.Property<long?>("RoomId")
                         .HasColumnType("bigint")
                         .HasColumnName("room_id");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date")
+                        .HasColumnName("start_date");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time")
+                        .HasColumnName("start_time");
+
+                    b.Property<sbyte>("Type")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint")
+                        .HasDefaultValue((sbyte)1)
+                        .HasColumnName("type");
 
                     b.Property<sbyte>("Weekday")
                         .HasColumnType("tinyint")
@@ -284,7 +319,7 @@ namespace app.Data.EF.Migrations
 
                     b.HasIndex("RoomId");
 
-                    b.HasIndex("ClassId", "Weekday");
+                    b.HasIndex("ClassId", "Weekday", "StartTime", "EndTime");
 
                     b.ToTable("class_schedules", (string)null);
                 });

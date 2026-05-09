@@ -86,7 +86,7 @@ public class InvoiceRepository : IInvoiceRepository
         {
             var roomAddress = await (from cs in _db.ClassSchedules
                                      join r in _db.Rooms on cs.RoomId equals r.Id
-                                     where cs.ClassId == enrollment.ClassId && cs.IsActive
+                                     where cs.ClassId == enrollment.ClassId
                                      select (r.Name ?? "") + (string.IsNullOrWhiteSpace(r.Location) ? "" : (" - " + r.Location))
                                     ).FirstOrDefaultAsync(cancellationToken) ?? "N/A";
 

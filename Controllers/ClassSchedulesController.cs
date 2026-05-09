@@ -52,15 +52,8 @@ public class ClassSchedulesController : ControllerBase
         var result = await _repo.CreateAsync(new ClassScheduleRequest
         {
             ClassId = request.ClassId,
-            TeacherId = request.TeacherId,
             RoomId = request.RoomId,
-            Weekday = request.Weekday,
-            StartTime = request.StartTime,
-            EndTime = request.EndTime,
-            StartDate = request.StartDate,
-            EndDate = request.EndDate,
-            OnlineLink = request.OnlineLink,
-            Type = request.Type
+            Weekday = request.Weekday
         }, cancellationToken);
         return Results.Ok(ApiResponse.Ok(result, "Create class schedule successfully."));
     }
