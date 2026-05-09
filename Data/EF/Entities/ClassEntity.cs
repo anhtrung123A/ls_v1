@@ -12,7 +12,7 @@ public class ClassEntity
     public int CurrentCount { get; set; } = 0;
     // offline 1 | online 2 | hybrid 3
     public byte Type { get; set; } = 1;
-    // upcoming 1 | in_progress 2 | finished 3 | cancelled 4
+    // upcoming 1 | schedule_created 2 | in_progress 3 | finished 4 | cancelled 5
     public byte Status { get; set; } = 1;
     public long? TeacherId { get; set; }
     public long? CreatedBy { get; set; }

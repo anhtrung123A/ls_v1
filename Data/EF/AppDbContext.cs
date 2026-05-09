@@ -23,6 +23,7 @@ public class AppDbContext : DbContext
     public DbSet<Room> Rooms => Set<Room>();
     public DbSet<ClassEntity> Classes => Set<ClassEntity>();
     public DbSet<ClassSchedule> ClassSchedules => Set<ClassSchedule>();
+    public DbSet<ClassSession> ClassSessions => Set<ClassSession>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
     public DbSet<ClassStudent> ClassStudents => Set<ClassStudent>();
     public DbSet<Invoice> Invoices => Set<Invoice>();
@@ -662,6 +663,34 @@ public class AppDbContext : DbContext
             entity.HasIndex(x => new { x.ClassId, x.Weekday });
             entity.HasOne<ClassEntity>().WithMany().HasForeignKey(x => x.ClassId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne<Room>().WithMany().HasForeignKey(x => x.RoomId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<ClassSession>(entity =>
+        {
+            entity.ToTable("class_sessions");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(x => x.ClassId).HasColumnName("class_id").IsRequired();
+            entity.Property(x => x.SessionDate).HasColumnName("session_date").HasColumnType("date").IsRequired();
+            entity.Property(x => x.StartTime).HasColumnName("start_time").HasColumnType("time").IsRequired();
+            entity.Property(x => x.EndTime).HasColumnName("end_time").HasColumnType("time").IsRequired();
+            entity.Property(x => x.TeacherId).HasColumnName("teacher_id");
+            entity.Property(x => x.RoomId).HasColumnName("room_id");
+            entity.Property(x => x.Type).HasColumnName("type").HasColumnType("tinyint").HasDefaultValue((byte)1);
+            entity.Property(x => x.OnlineLink).HasColumnName("online_link").HasColumnType("text");
+            entity.Property(x => x.Status).HasColumnName("status").HasColumnType("tinyint").HasDefaultValue((byte)1);
+            entity.Property(x => x.CreatedBy).HasColumnName("created_by");
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(x => x.ClassId);
+            entity.HasIndex(x => x.SessionDate);
+            entity.HasIndex(x => x.TeacherId);
+            entity.HasIndex(x => x.RoomId);
+            entity.HasIndex(x => x.Status);
+            entity.HasOne<ClassEntity>().WithMany().HasForeignKey(x => x.ClassId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.TeacherId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne<Room>().WithMany().HasForeignKey(x => x.RoomId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.CreatedBy).OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Enrollment>(entity =>
