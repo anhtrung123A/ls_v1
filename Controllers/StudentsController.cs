@@ -99,6 +99,30 @@ public class StudentsController : ControllerBase
         return Results.Ok(ApiResponse.Ok(result, "Create user successfully."));
     }
 
+    [HttpGet("my_classes")]
+    public async Task<IResult> MyClasses([FromQuery] MyClassListQuery query, CancellationToken cancellationToken)
+    {
+        var userId = EnsureStudentRoleAndGetUserId();
+        var result = await _studentRepository.GetMyClassesAsync(userId, query, cancellationToken);
+        return Results.Ok(ApiResponse.Ok(result, "Get my classes successfully."));
+    }
+
+    [HttpGet("my_class_schedules")]
+    public async Task<IResult> MyClassSchedules([FromQuery] MyClassScheduleListQuery query, CancellationToken cancellationToken)
+    {
+        var userId = EnsureStudentRoleAndGetUserId();
+        var result = await _studentRepository.GetMyClassSchedulesAsync(userId, query, cancellationToken);
+        return Results.Ok(ApiResponse.Ok(result, "Get my class schedules successfully."));
+    }
+
+    [HttpGet("my_class_sessions")]
+    public async Task<IResult> MyClassSessions([FromQuery] MyClassSessionListQuery query, CancellationToken cancellationToken)
+    {
+        var userId = EnsureStudentRoleAndGetUserId();
+        var result = await _studentRepository.GetMyClassSessionsAsync(userId, query, cancellationToken);
+        return Results.Ok(ApiResponse.Ok(result, "Get my class sessions successfully."));
+    }
+
     [HttpDelete("{id:long}")]
     public async Task<IResult> Delete(long id, CancellationToken cancellationToken)
     {
@@ -173,5 +197,16 @@ public class StudentsController : ControllerBase
         }
 
         return userId;
+    }
+
+    private long EnsureStudentRoleAndGetUserId()
+    {
+        var role = User.FindFirst("role")?.Value;
+        if (role != "4")
+        {
+            throw new UnauthorizedAccessException("Only student can access this endpoint.");
+        }
+
+        return GetCurrentUserId();
     }
 }
