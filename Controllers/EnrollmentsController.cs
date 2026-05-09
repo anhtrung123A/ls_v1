@@ -48,7 +48,6 @@ public class EnrollmentsController : ControllerBase
             TuitionFee = request.TuitionFee,
             Discount = request.Discount,
             DiscountReason = request.DiscountReason,
-            FinalFee = request.FinalFee,
             CompletedAt = request.CompletedAt,
             Notes = request.Notes
         }, staffId, cancellationToken);

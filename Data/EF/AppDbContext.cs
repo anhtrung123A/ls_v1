@@ -24,6 +24,8 @@ public class AppDbContext : DbContext
     public DbSet<ClassEntity> Classes => Set<ClassEntity>();
     public DbSet<ClassSchedule> ClassSchedules => Set<ClassSchedule>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
+    public DbSet<Invoice> Invoices => Set<Invoice>();
+    public DbSet<Payment> Payments => Set<Payment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -688,6 +690,55 @@ public class AppDbContext : DbContext
             entity.HasOne<Student>().WithMany().HasForeignKey(x => x.StudentId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<ClassEntity>().WithMany().HasForeignKey(x => x.ClassId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<Staff>().WithMany().HasForeignKey(x => x.EnrolledBy).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Invoice>(entity =>
+        {
+            entity.ToTable("invoices");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(x => x.InvoiceNo).HasColumnName("invoice_no").HasMaxLength(50).IsRequired();
+            entity.Property(x => x.EnrollmentId).HasColumnName("enrollment_id").IsRequired();
+            entity.Property(x => x.StudentId).HasColumnName("student_id").IsRequired();
+            entity.Property(x => x.SubtotalAmount).HasColumnName("subtotal_amount").HasPrecision(12, 2).IsRequired();
+            entity.Property(x => x.DiscountAmount).HasColumnName("discount_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.FinalAmount).HasColumnName("final_amount").HasPrecision(12, 2).IsRequired();
+            entity.Property(x => x.PaidAmount).HasColumnName("paid_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.RemainingAmount).HasColumnName("remaining_amount").HasPrecision(12, 2).HasDefaultValue(0m);
+            entity.Property(x => x.DueDate).HasColumnName("due_date").HasColumnType("date");
+            entity.Property(x => x.Status).HasColumnName("status").HasColumnType("tinyint").HasDefaultValue((byte)1);
+            entity.Property(x => x.Note).HasColumnName("note").HasColumnType("text");
+            entity.Property(x => x.CreatedBy).HasColumnName("created_by");
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.Property(x => x.UpdatedAt).HasColumnName("updated_at").HasColumnType("timestamp");
+            entity.HasIndex(x => x.InvoiceNo).IsUnique();
+            entity.HasIndex(x => x.EnrollmentId);
+            entity.HasIndex(x => x.StudentId);
+            entity.HasIndex(x => x.Status);
+            entity.HasOne<Enrollment>().WithMany().HasForeignKey(x => x.EnrollmentId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Student>().WithMany().HasForeignKey(x => x.StudentId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.CreatedBy).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.ToTable("payments");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(x => x.InvoiceId).HasColumnName("invoice_id").IsRequired();
+            entity.Property(x => x.Amount).HasColumnName("amount").HasPrecision(12, 2).IsRequired();
+            entity.Property(x => x.Method).HasColumnName("method").HasColumnType("tinyint");
+            entity.Property(x => x.Status).HasColumnName("status").HasColumnType("tinyint").HasDefaultValue((byte)1);
+            entity.Property(x => x.TransactionRef).HasColumnName("transaction_ref").HasMaxLength(200);
+            entity.Property(x => x.Note).HasColumnName("note").HasColumnType("text");
+            entity.Property(x => x.CollectedBy).HasColumnName("collected_by");
+            entity.Property(x => x.PaidAt).HasColumnName("paid_at").HasColumnType("timestamp");
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(x => x.InvoiceId);
+            entity.HasIndex(x => x.Status);
+            entity.HasIndex(x => x.PaidAt);
+            entity.HasOne<Invoice>().WithMany().HasForeignKey(x => x.InvoiceId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Staff>().WithMany().HasForeignKey(x => x.CollectedBy).OnDelete(DeleteBehavior.SetNull);
         });
 
         base.OnModelCreating(modelBuilder);

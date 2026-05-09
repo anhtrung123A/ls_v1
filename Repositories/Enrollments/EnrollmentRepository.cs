@@ -89,7 +89,7 @@ public class EnrollmentRepository : IEnrollmentRepository
             TuitionFee = request.TuitionFee,
             Discount = request.Discount ?? 0,
             DiscountReason = request.DiscountReason,
-            FinalFee = request.FinalFee ?? ComputeFinalFee(request.TuitionFee, request.Discount),
+            FinalFee = ComputeFinalFee(request.TuitionFee, request.Discount),
             EnrolledBy = enrolledByStaffId,
             CompletedAt = request.CompletedAt,
             Notes = request.Notes

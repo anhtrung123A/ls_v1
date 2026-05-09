@@ -7,7 +7,6 @@ public class CreateEnrollmentRequest
     public decimal? TuitionFee { get; set; }
     public decimal? Discount { get; set; }
     public string? DiscountReason { get; set; }
-    public decimal? FinalFee { get; set; }
     public DateTime? CompletedAt { get; set; }
     public string? Notes { get; set; }
 }
