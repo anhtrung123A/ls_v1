@@ -71,6 +71,24 @@ public class PaymentRepository : IPaymentRepository
             throw new InvalidOperationException("Payment amount is less than remaining amount, confirmation rejected.");
         }
 
+        var enrollment = await _db.Enrollments.FirstOrDefaultAsync(x => x.Id == invoice.EnrollmentId, cancellationToken);
+        if (enrollment is null) throw new InvalidOperationException("Enrollment does not exist.");
+
+        var @class = await _db.Classes.FirstOrDefaultAsync(x => x.Id == enrollment.ClassId, cancellationToken);
+        if (@class is null) throw new InvalidOperationException("Class does not exist.");
+        if (@class.CurrentCount >= @class.MaxStudents)
+        {
+            throw new InvalidOperationException("Class is full, cannot confirm payment.");
+        }
+
+        var classStudentExists = await _db.ClassStudents.AnyAsync(
+            x => x.ClassId == enrollment.ClassId && x.StudentId == enrollment.StudentId,
+            cancellationToken);
+        if (classStudentExists)
+        {
+            throw new InvalidOperationException("Student already exists in this class.");
+        }
+
         payment.Status = 2;
         payment.PaidAt ??= DateTime.UtcNow;
 
@@ -78,6 +96,19 @@ public class PaymentRepository : IPaymentRepository
         invoice.RemainingAmount = Math.Max(0, invoice.FinalAmount - invoice.PaidAmount);
         invoice.Status = invoice.RemainingAmount == 0 ? (byte)3 : (byte)2; // paid/partial
         invoice.UpdatedAt = DateTime.UtcNow;
+
+        var classStudent = new ClassStudent
+        {
+            ClassId = enrollment.ClassId,
+            StudentId = enrollment.StudentId,
+            EnrollmentId = enrollment.Id,
+            Status = 1,
+            AddedBy = null,
+            Note = "Auto-added after payment confirmed.",
+            UpdatedAt = DateTime.UtcNow
+        };
+        _db.ClassStudents.Add(classStudent);
+        @class.CurrentCount += 1;
 
         await _db.SaveChangesAsync(cancellationToken);
 
