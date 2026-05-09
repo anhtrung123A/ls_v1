@@ -11,5 +11,6 @@ public class ClassRequest
     public int? CurrentCount { get; set; }
     public byte? Type { get; set; }
     public byte? Status { get; set; }
+    public long? TeacherId { get; set; }
     public long? CreatedBy { get; set; }
 }

@@ -14,6 +14,7 @@ public class ClassEntity
     public byte Type { get; set; } = 1;
     // upcoming 1 | in_progress 2 | finished 3 | cancelled 4
     public byte Status { get; set; } = 1;
+    public long? TeacherId { get; set; }
     public long? CreatedBy { get; set; }
     public DateTime CreatedAt { get; set; }
 }

@@ -50,6 +50,7 @@ public class ClassesController : ControllerBase
             MaxStudents = request.MaxStudents,
             CurrentCount = request.CurrentCount,
             Type = request.Type,
+            TeacherId = request.TeacherId,
             CreatedBy = GetCurrentUserId()
         }, cancellationToken);
         return Results.Ok(ApiResponse.Ok(result, "Create class successfully."));

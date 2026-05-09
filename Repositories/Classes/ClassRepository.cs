@@ -47,6 +47,7 @@ public class ClassRepository : IClassRepository
             CurrentCount = request.CurrentCount ?? 0,
             Type = request.Type ?? 1,
             Status = request.Status ?? 1,
+            TeacherId = request.TeacherId,
             CreatedBy = request.CreatedBy
         };
 
@@ -80,6 +81,7 @@ public class ClassRepository : IClassRepository
         entity.CurrentCount = request.CurrentCount ?? entity.CurrentCount;
         entity.Type = request.Type ?? entity.Type;
         entity.Status = request.Status ?? entity.Status;
+        entity.TeacherId = request.TeacherId;
         entity.CreatedBy = request.CreatedBy;
         await _db.SaveChangesAsync(cancellationToken);
         return await GetByIdAsync(id, cancellationToken);
@@ -102,6 +104,12 @@ public class ClassRepository : IClassRepository
         {
             var userExists = await _db.Set<User>().AnyAsync(x => x.Id == request.CreatedBy.Value, cancellationToken);
             if (!userExists) throw new InvalidOperationException("CreatedBy user does not exist.");
+        }
+
+        if (request.TeacherId.HasValue)
+        {
+            var teacherExists = await _db.Set<User>().AnyAsync(x => x.Id == request.TeacherId.Value, cancellationToken);
+            if (!teacherExists) throw new InvalidOperationException("Teacher user does not exist.");
         }
     }
 
@@ -131,6 +139,7 @@ public class ClassRepository : IClassRepository
         CurrentCount = x.CurrentCount,
         Type = x.Type,
         Status = x.Status,
+        TeacherId = x.TeacherId,
         CreatedBy = x.CreatedBy,
         CreatedAt = x.CreatedAt
     };

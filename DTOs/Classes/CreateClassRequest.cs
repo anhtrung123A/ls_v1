@@ -9,4 +9,5 @@ public class CreateClassRequest
     public int? MaxStudents { get; set; }
     public int? CurrentCount { get; set; }
     public byte? Type { get; set; }
+    public long? TeacherId { get; set; }
 }

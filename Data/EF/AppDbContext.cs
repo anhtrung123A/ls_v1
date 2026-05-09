@@ -641,10 +641,12 @@ public class AppDbContext : DbContext
             entity.Property(x => x.CurrentCount).HasColumnName("current_count").HasDefaultValue(0);
             entity.Property(x => x.Type).HasColumnName("type").HasColumnType("tinyint").HasDefaultValue((byte)1);
             entity.Property(x => x.Status).HasColumnName("status").HasColumnType("tinyint").HasDefaultValue((byte)1);
+            entity.Property(x => x.TeacherId).HasColumnName("teacher_id");
             entity.Property(x => x.CreatedBy).HasColumnName("created_by");
             entity.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
             entity.HasIndex(x => x.ClassCode).IsUnique();
             entity.HasOne<Course>().WithMany().HasForeignKey(x => x.CourseId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.TeacherId).OnDelete(DeleteBehavior.SetNull);
             entity.HasOne<User>().WithMany().HasForeignKey(x => x.CreatedBy).OnDelete(DeleteBehavior.SetNull);
         });
 

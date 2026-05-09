@@ -12,6 +12,7 @@ public class ClassResponse
     public int CurrentCount { get; init; }
     public byte Type { get; init; }
     public byte Status { get; init; }
+    public long? TeacherId { get; init; }
     public long? CreatedBy { get; init; }
     public DateTime CreatedAt { get; init; }
 }
