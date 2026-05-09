@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using app.Data.EF;
 
@@ -11,9 +12,11 @@ using app.Data.EF;
 namespace app.Data.EF.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260509045556_AlignClassesAndSchedulesWithDbml")]
+    partial class AlignClassesAndSchedulesWithDbml
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -330,9 +333,10 @@ namespace app.Data.EF.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<long?>("CategoryId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("category_id");
+                    b.Property<string>("Category")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("category");
 
                     b.Property<string>("Code")
                         .IsRequired()
@@ -398,180 +402,12 @@ namespace app.Data.EF.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CategoryId");
-
                     b.HasIndex("Code")
                         .IsUnique();
 
                     b.HasIndex("CreatedBy");
 
                     b.ToTable("courses", (string)null);
-                });
-
-            modelBuilder.Entity("app.Data.EF.Entities.CourseCategory", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("id");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("description");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_active");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("name");
-
-                    b.Property<string>("Slug")
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)")
-                        .HasColumnName("slug");
-
-                    b.Property<int>("SortOrder")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0)
-                        .HasColumnName("sort_order");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Slug")
-                        .IsUnique();
-
-                    b.ToTable("course_categories", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1L,
-                            IsActive = true,
-                            Name = "IELTS",
-                            Slug = "ielts",
-                            SortOrder = 1
-                        },
-                        new
-                        {
-                            Id = 2L,
-                            IsActive = true,
-                            Name = "TOEIC",
-                            Slug = "toeic",
-                            SortOrder = 2
-                        },
-                        new
-                        {
-                            Id = 3L,
-                            IsActive = true,
-                            Name = "TOEFL",
-                            Slug = "toefl",
-                            SortOrder = 3
-                        },
-                        new
-                        {
-                            Id = 4L,
-                            IsActive = true,
-                            Name = "English Communication",
-                            Slug = "english-communication",
-                            SortOrder = 4
-                        },
-                        new
-                        {
-                            Id = 5L,
-                            IsActive = true,
-                            Name = "Business English",
-                            Slug = "business-english",
-                            SortOrder = 5
-                        },
-                        new
-                        {
-                            Id = 6L,
-                            IsActive = true,
-                            Name = "Academic English",
-                            Slug = "academic-english",
-                            SortOrder = 6
-                        },
-                        new
-                        {
-                            Id = 7L,
-                            IsActive = true,
-                            Name = "Kids English",
-                            Slug = "kids-english",
-                            SortOrder = 7
-                        },
-                        new
-                        {
-                            Id = 8L,
-                            IsActive = true,
-                            Name = "Grammar",
-                            Slug = "grammar",
-                            SortOrder = 8
-                        },
-                        new
-                        {
-                            Id = 9L,
-                            IsActive = true,
-                            Name = "Pronunciation",
-                            Slug = "pronunciation",
-                            SortOrder = 9
-                        },
-                        new
-                        {
-                            Id = 10L,
-                            IsActive = true,
-                            Name = "Listening",
-                            Slug = "listening",
-                            SortOrder = 10
-                        },
-                        new
-                        {
-                            Id = 11L,
-                            IsActive = true,
-                            Name = "Speaking",
-                            Slug = "speaking",
-                            SortOrder = 11
-                        },
-                        new
-                        {
-                            Id = 12L,
-                            IsActive = true,
-                            Name = "Reading",
-                            Slug = "reading",
-                            SortOrder = 12
-                        },
-                        new
-                        {
-                            Id = 13L,
-                            IsActive = true,
-                            Name = "Writing",
-                            Slug = "writing",
-                            SortOrder = 13
-                        },
-                        new
-                        {
-                            Id = 14L,
-                            IsActive = true,
-                            Name = "SAT English",
-                            Slug = "sat-english",
-                            SortOrder = 14
-                        },
-                        new
-                        {
-                            Id = 15L,
-                            IsActive = true,
-                            Name = "Cambridge English",
-                            Slug = "cambridge-english",
-                            SortOrder = 15
-                        });
                 });
 
             modelBuilder.Entity("app.Data.EF.Entities.Interaction", b =>
@@ -1073,11 +909,6 @@ namespace app.Data.EF.Migrations
 
             modelBuilder.Entity("app.Data.EF.Entities.Course", b =>
                 {
-                    b.HasOne("app.Data.EF.Entities.CourseCategory", null)
-                        .WithMany()
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("app.Data.EF.Entities.User", null)
                         .WithMany()
                         .HasForeignKey("CreatedBy")

@@ -18,6 +18,11 @@ public class AppDbContext : DbContext
     public DbSet<BatchJobLock> BatchJobLocks => Set<BatchJobLock>();
     public DbSet<Interaction> Interactions => Set<Interaction>();
     public DbSet<TaskItem> Tasks => Set<TaskItem>();
+    public DbSet<Course> Courses => Set<Course>();
+    public DbSet<CourseCategory> CourseCategories => Set<CourseCategory>();
+    public DbSet<Room> Rooms => Set<Room>();
+    public DbSet<ClassEntity> Classes => Set<ClassEntity>();
+    public DbSet<ClassSchedule> ClassSchedules => Set<ClassSchedule>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -550,6 +555,116 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(x => x.RelatedLeadId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Course>(entity =>
+        {
+            entity.ToTable("courses");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(x => x.Code).HasColumnName("code").HasMaxLength(20).IsRequired();
+            entity.Property(x => x.Name).HasColumnName("name").HasMaxLength(200).IsRequired();
+            entity.Property(x => x.Description).HasColumnName("description").HasColumnType("text");
+            entity.Property(x => x.CategoryId).HasColumnName("category_id");
+            entity.Property(x => x.Level).HasColumnName("level").HasMaxLength(50);
+            entity.Property(x => x.TotalSessions).HasColumnName("total_sessions");
+            entity.Property(x => x.DurationMinutes).HasColumnName("duration_minutes");
+            entity.Property(x => x.Price).HasColumnName("price").HasPrecision(12, 2);
+            entity.Property(x => x.Currency).HasColumnName("currency").HasMaxLength(5).HasDefaultValue("VND");
+            entity.Property(x => x.ThumbnailUrl).HasColumnName("thumbnail_url").HasColumnType("text");
+            entity.Property(x => x.Status).HasColumnName("status").HasColumnType("tinyint").HasDefaultValue((byte)1);
+            entity.Property(x => x.CreatedBy).HasColumnName("created_by");
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(x => x.Code).IsUnique();
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.CreatedBy).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne<CourseCategory>().WithMany().HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<CourseCategory>(entity =>
+        {
+            entity.ToTable("course_categories");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(x => x.Name).HasColumnName("name").HasMaxLength(100).IsRequired();
+            entity.Property(x => x.Slug).HasColumnName("slug").HasMaxLength(100);
+            entity.Property(x => x.Description).HasColumnName("description").HasColumnType("text");
+            entity.Property(x => x.SortOrder).HasColumnName("sort_order").HasDefaultValue(0);
+            entity.Property(x => x.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.HasIndex(x => x.Slug).IsUnique();
+            entity.HasData(
+                new CourseCategory { Id = 1, Name = "IELTS", Slug = "ielts", SortOrder = 1, IsActive = true },
+                new CourseCategory { Id = 2, Name = "TOEIC", Slug = "toeic", SortOrder = 2, IsActive = true },
+                new CourseCategory { Id = 3, Name = "TOEFL", Slug = "toefl", SortOrder = 3, IsActive = true },
+                new CourseCategory { Id = 4, Name = "English Communication", Slug = "english-communication", SortOrder = 4, IsActive = true },
+                new CourseCategory { Id = 5, Name = "Business English", Slug = "business-english", SortOrder = 5, IsActive = true },
+                new CourseCategory { Id = 6, Name = "Academic English", Slug = "academic-english", SortOrder = 6, IsActive = true },
+                new CourseCategory { Id = 7, Name = "Kids English", Slug = "kids-english", SortOrder = 7, IsActive = true },
+                new CourseCategory { Id = 8, Name = "Grammar", Slug = "grammar", SortOrder = 8, IsActive = true },
+                new CourseCategory { Id = 9, Name = "Pronunciation", Slug = "pronunciation", SortOrder = 9, IsActive = true },
+                new CourseCategory { Id = 10, Name = "Listening", Slug = "listening", SortOrder = 10, IsActive = true },
+                new CourseCategory { Id = 11, Name = "Speaking", Slug = "speaking", SortOrder = 11, IsActive = true },
+                new CourseCategory { Id = 12, Name = "Reading", Slug = "reading", SortOrder = 12, IsActive = true },
+                new CourseCategory { Id = 13, Name = "Writing", Slug = "writing", SortOrder = 13, IsActive = true },
+                new CourseCategory { Id = 14, Name = "SAT English", Slug = "sat-english", SortOrder = 14, IsActive = true },
+                new CourseCategory { Id = 15, Name = "Cambridge English", Slug = "cambridge-english", SortOrder = 15, IsActive = true }
+            );
+        });
+
+        modelBuilder.Entity<Room>(entity =>
+        {
+            entity.ToTable("rooms");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(x => x.Name).HasColumnName("name").HasMaxLength(100).IsRequired();
+            entity.Property(x => x.Location).HasColumnName("location").HasMaxLength(200);
+            entity.Property(x => x.Capacity).HasColumnName("capacity");
+            entity.Property(x => x.Facilities).HasColumnName("facilities").HasColumnType("text");
+            entity.Property(x => x.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+        });
+
+        modelBuilder.Entity<ClassEntity>(entity =>
+        {
+            entity.ToTable("classes");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(x => x.CourseId).HasColumnName("course_id").IsRequired();
+            entity.Property(x => x.ClassCode).HasColumnName("class_code").HasMaxLength(30).IsRequired();
+            entity.Property(x => x.Name).HasColumnName("name").HasMaxLength(200);
+            entity.Property(x => x.StartDate).HasColumnName("start_date").HasColumnType("date");
+            entity.Property(x => x.EndDate).HasColumnName("end_date").HasColumnType("date");
+            entity.Property(x => x.MaxStudents).HasColumnName("max_students").HasDefaultValue(20);
+            entity.Property(x => x.CurrentCount).HasColumnName("current_count").HasDefaultValue(0);
+            entity.Property(x => x.Type).HasColumnName("type").HasColumnType("tinyint").HasDefaultValue((byte)1);
+            entity.Property(x => x.Status).HasColumnName("status").HasColumnType("tinyint").HasDefaultValue((byte)1);
+            entity.Property(x => x.CreatedBy).HasColumnName("created_by");
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(x => x.ClassCode).IsUnique();
+            entity.HasOne<Course>().WithMany().HasForeignKey(x => x.CourseId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.CreatedBy).OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<ClassSchedule>(entity =>
+        {
+            entity.ToTable("class_schedules");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Id).HasColumnName("id").ValueGeneratedOnAdd();
+            entity.Property(x => x.ClassId).HasColumnName("class_id").IsRequired();
+            entity.Property(x => x.TeacherId).HasColumnName("teacher_id");
+            entity.Property(x => x.RoomId).HasColumnName("room_id");
+            entity.Property(x => x.Weekday).HasColumnName("weekday").HasColumnType("tinyint").IsRequired();
+            entity.Property(x => x.StartTime).HasColumnName("start_time").HasColumnType("time").IsRequired();
+            entity.Property(x => x.EndTime).HasColumnName("end_time").HasColumnType("time").IsRequired();
+            entity.Property(x => x.StartDate).HasColumnName("start_date").HasColumnType("date");
+            entity.Property(x => x.EndDate).HasColumnName("end_date").HasColumnType("date");
+            entity.Property(x => x.OnlineLink).HasColumnName("online_link").HasColumnType("text");
+            entity.Property(x => x.Type).HasColumnName("type").HasColumnType("tinyint").HasDefaultValue((byte)1);
+            entity.Property(x => x.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(x => x.CreatedAt).HasColumnName("created_at").HasColumnType("timestamp").HasDefaultValueSql("CURRENT_TIMESTAMP");
+            entity.HasIndex(x => new { x.ClassId, x.Weekday, x.StartTime, x.EndTime });
+            entity.HasOne<ClassEntity>().WithMany().HasForeignKey(x => x.ClassId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<User>().WithMany().HasForeignKey(x => x.TeacherId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne<Room>().WithMany().HasForeignKey(x => x.RoomId).OnDelete(DeleteBehavior.SetNull);
         });
 
         base.OnModelCreating(modelBuilder);

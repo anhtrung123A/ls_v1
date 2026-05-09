@@ -15,6 +15,11 @@ using app.Repositories.Leads;
 using app.Repositories.Students;
 using app.Repositories.Interactions;
 using app.Repositories.Tasks;
+using app.Repositories.Courses;
+using app.Repositories.CourseCategories;
+using app.Repositories.Rooms;
+using app.Repositories.Classes;
+using app.Repositories.ClassSchedules;
 using app.Services.Auth;
 using app.Services.Email;
 
@@ -94,6 +99,11 @@ builder.Services.AddScoped<ILeadRepository, LeadRepository>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IInteractionRepository, InteractionRepository>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+builder.Services.AddScoped<ICourseCategoryRepository, CourseCategoryRepository>();
+builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+builder.Services.AddScoped<IClassRepository, ClassRepository>();
+builder.Services.AddScoped<IClassScheduleRepository, ClassScheduleRepository>();
 
 var app = builder.Build();
 app.Logger.LogInformation("MySQL connection: {ConnectionString}", MaskSensitiveConnectionString(connectionString));
