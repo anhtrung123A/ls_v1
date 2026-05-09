@@ -25,6 +25,7 @@ using app.Repositories.Invoices;
 using app.Repositories.Payments;
 using app.Repositories.ClassAttendances;
 using app.Repositories.SalaryConfigs;
+using app.Repositories.Payrolls;
 using app.Services.Auth;
 using app.Services.Email;
 
@@ -114,6 +115,7 @@ builder.Services.AddScoped<IInvoiceRepository, InvoiceRepository>();
 builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IClassAttendanceRepository, ClassAttendanceRepository>();
 builder.Services.AddScoped<ISalaryConfigRepository, SalaryConfigRepository>();
+builder.Services.AddScoped<IPayrollRepository, PayrollRepository>();
 
 var app = builder.Build();
 app.Logger.LogInformation("MySQL connection: {ConnectionString}", MaskSensitiveConnectionString(connectionString));
