@@ -16,6 +16,8 @@ public class AppDbContext : DbContext
     public DbSet<BatchJobExecution> BatchJobExecutions => Set<BatchJobExecution>();
     public DbSet<BatchJobItem> BatchJobItems => Set<BatchJobItem>();
     public DbSet<BatchJobLock> BatchJobLocks => Set<BatchJobLock>();
+    public DbSet<Interaction> Interactions => Set<Interaction>();
+    public DbSet<TaskItem> Tasks => Set<TaskItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -425,6 +427,129 @@ public class AppDbContext : DbContext
                 .IsRequired();
 
             entity.HasIndex(x => x.ExpiresAt);
+        });
+
+        modelBuilder.Entity<Interaction>(entity =>
+        {
+            entity.ToTable("interactions");
+
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .HasColumnName("id")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(x => x.LeadId)
+                .HasColumnName("lead_id");
+
+            entity.Property(x => x.StaffId)
+                .HasColumnName("staff_id");
+
+            entity.Property(x => x.Channel)
+                .HasColumnName("channel")
+                .HasMaxLength(50);
+
+            entity.Property(x => x.Direction)
+                .HasColumnName("direction")
+                .HasMaxLength(10);
+
+            entity.Property(x => x.Content)
+                .HasColumnName("content")
+                .HasColumnType("text");
+
+            entity.Property(x => x.Outcome)
+                .HasColumnName("outcome")
+                .HasMaxLength(100);
+
+            entity.Property(x => x.Attachments)
+                .HasColumnName("attachments")
+                .HasColumnType("text");
+
+            entity.Property(x => x.OccurredAt)
+                .HasColumnName("occurred_at")
+                .HasColumnType("timestamp")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne<Lead>()
+                .WithMany()
+                .HasForeignKey(x => x.LeadId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne<Staff>()
+                .WithMany()
+                .HasForeignKey(x => x.StaffId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<TaskItem>(entity =>
+        {
+            entity.ToTable("tasks");
+
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.Id)
+                .HasColumnName("id")
+                .ValueGeneratedOnAdd();
+
+            entity.Property(x => x.AssignedTo)
+                .HasColumnName("assigned_to");
+
+            entity.Property(x => x.CreatedBy)
+                .HasColumnName("created_by");
+
+            entity.Property(x => x.RelatedLeadId)
+                .HasColumnName("related_lead_id");
+
+            entity.Property(x => x.Title)
+                .HasColumnName("title")
+                .HasMaxLength(200)
+                .IsRequired();
+
+            entity.Property(x => x.Description)
+                .HasColumnName("description")
+                .HasColumnType("text");
+
+            entity.Property(x => x.Type)
+                .HasColumnName("type")
+                .HasMaxLength(50);
+
+            entity.Property(x => x.Priority)
+                .HasColumnName("priority")
+                .HasColumnType("tinyint")
+                .HasDefaultValue((byte)2);
+
+            entity.Property(x => x.Status)
+                .HasColumnName("status")
+                .HasColumnType("tinyint")
+                .HasDefaultValue((byte)1);
+
+            entity.Property(x => x.DueAt)
+                .HasColumnName("due_at")
+                .HasColumnType("timestamp");
+
+            entity.Property(x => x.DoneAt)
+                .HasColumnName("done_at")
+                .HasColumnType("timestamp");
+
+            entity.Property(x => x.CreatedAt)
+                .HasColumnName("created_at")
+                .HasColumnType("timestamp")
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            entity.HasOne<Staff>()
+                .WithMany()
+                .HasForeignKey(x => x.AssignedTo)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne<Staff>()
+                .WithMany()
+                .HasForeignKey(x => x.CreatedBy)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne<Lead>()
+                .WithMany()
+                .HasForeignKey(x => x.RelatedLeadId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         base.OnModelCreating(modelBuilder);

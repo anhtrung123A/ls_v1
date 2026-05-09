@@ -13,6 +13,8 @@ using app.Repositories.Staff;
 using app.Repositories.Users;
 using app.Repositories.Leads;
 using app.Repositories.Students;
+using app.Repositories.Interactions;
+using app.Repositories.Tasks;
 using app.Services.Auth;
 using app.Services.Email;
 
@@ -90,6 +92,8 @@ builder.Services.AddScoped<IStaffRepository, StaffRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ILeadRepository, LeadRepository>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
+builder.Services.AddScoped<IInteractionRepository, InteractionRepository>();
+builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 
 var app = builder.Build();
 app.Logger.LogInformation("MySQL connection: {ConnectionString}", MaskSensitiveConnectionString(connectionString));
