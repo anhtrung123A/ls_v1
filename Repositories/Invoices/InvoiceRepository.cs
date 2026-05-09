@@ -3,13 +3,19 @@ using app.Common.Pagination;
 using app.Data.EF;
 using app.Data.EF.Entities;
 using app.DTOs.Invoices;
+using app.Services.Email;
 
 namespace app.Repositories.Invoices;
 
 public class InvoiceRepository : IInvoiceRepository
 {
     private readonly AppDbContext _db;
-    public InvoiceRepository(AppDbContext db) { _db = db; }
+    private readonly IEmailService _emailService;
+    public InvoiceRepository(AppDbContext db, IEmailService emailService)
+    {
+        _db = db;
+        _emailService = emailService;
+    }
 
     public async Task<PagedResponse<InvoiceResponse>> GetAllAsync(InvoiceListQuery query, CancellationToken cancellationToken = default)
     {
@@ -62,6 +68,40 @@ public class InvoiceRepository : IInvoiceRepository
         };
         _db.Add(invoice);
         await _db.SaveChangesAsync(cancellationToken);
+
+        var emailPayload = await (from s in _db.Students
+                                  join u in _db.Users on s.UserId equals u.Id
+                                  join c in _db.Classes on enrollment.ClassId equals c.Id
+                                  join course in _db.Courses on c.CourseId equals course.Id
+                                  where s.Id == request.StudentId
+                                  select new
+                                  {
+                                      u.Email,
+                                      StudentName = u.FullName,
+                                      ClassName = c.Name,
+                                      CourseName = course.Name
+                                  }).FirstOrDefaultAsync(cancellationToken);
+
+        if (emailPayload is not null && !string.IsNullOrWhiteSpace(emailPayload.Email))
+        {
+            var roomAddress = await (from cs in _db.ClassSchedules
+                                     join r in _db.Rooms on cs.RoomId equals r.Id
+                                     where cs.ClassId == enrollment.ClassId && cs.IsActive
+                                     select (r.Name ?? "") + (string.IsNullOrWhiteSpace(r.Location) ? "" : (" - " + r.Location))
+                                    ).FirstOrDefaultAsync(cancellationToken) ?? "N/A";
+
+            await _emailService.SendInvoiceCreatedAsync(
+                toEmail: emailPayload.Email,
+                studentName: emailPayload.StudentName ?? "Student",
+                className: emailPayload.ClassName ?? "Class",
+                courseName: emailPayload.CourseName ?? "Course",
+                roomAddress: roomAddress,
+                subtotalAmount: invoice.SubtotalAmount,
+                discountAmount: invoice.DiscountAmount,
+                finalAmount: invoice.FinalAmount,
+                cancellationToken: cancellationToken);
+        }
+
         return await GetByIdAsync(invoice.Id, cancellationToken) ?? throw new InvalidOperationException("Cannot read newly created invoice.");
     }
 

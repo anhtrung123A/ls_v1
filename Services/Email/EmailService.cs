@@ -76,6 +76,54 @@ public class EmailService : IEmailService
         await SendEmailAsync(toEmail, "Your OTP verification code", body, cancellationToken);
     }
 
+    public async Task SendInvoiceCreatedAsync(
+        string toEmail,
+        string studentName,
+        string className,
+        string courseName,
+        string roomAddress,
+        decimal subtotalAmount,
+        decimal discountAmount,
+        decimal finalAmount,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureSmtpConfigured();
+
+        var templatePath = Path.Combine(_environment.ContentRootPath, "Views", "Emails", "InvoiceCreated.html");
+        var template = await File.ReadAllTextAsync(templatePath, cancellationToken);
+
+        var body = template
+            .Replace("{{StudentName}}", WebUtility.HtmlEncode(studentName))
+            .Replace("{{ClassName}}", WebUtility.HtmlEncode(className))
+            .Replace("{{CourseName}}", WebUtility.HtmlEncode(courseName))
+            .Replace("{{RoomAddress}}", WebUtility.HtmlEncode(roomAddress))
+            .Replace("{{SubtotalAmount}}", WebUtility.HtmlEncode(subtotalAmount.ToString("N2")))
+            .Replace("{{DiscountAmount}}", WebUtility.HtmlEncode(discountAmount.ToString("N2")))
+            .Replace("{{FinalAmount}}", WebUtility.HtmlEncode(finalAmount.ToString("N2")));
+
+        await SendEmailAsync(toEmail, "New invoice created for your class", body, cancellationToken);
+    }
+
+    public async Task SendPaymentConfirmedAsync(
+        string toEmail,
+        string studentName,
+        string className,
+        string courseName,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureSmtpConfigured();
+
+        var templatePath = Path.Combine(_environment.ContentRootPath, "Views", "Emails", "PaymentConfirmed.html");
+        var template = await File.ReadAllTextAsync(templatePath, cancellationToken);
+
+        var body = template
+            .Replace("{{StudentName}}", WebUtility.HtmlEncode(studentName))
+            .Replace("{{ClassName}}", WebUtility.HtmlEncode(className))
+            .Replace("{{CourseName}}", WebUtility.HtmlEncode(courseName));
+
+        await SendEmailAsync(toEmail, "Payment confirmed - class access is now available", body, cancellationToken);
+    }
+
     private void EnsureSmtpConfigured()
     {
         if (string.IsNullOrWhiteSpace(_smtpOptions.Host) ||

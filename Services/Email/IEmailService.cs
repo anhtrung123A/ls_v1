@@ -21,4 +21,22 @@ public interface IEmailService
         string otp,
         int expireMinutes,
         CancellationToken cancellationToken = default);
+
+    Task SendInvoiceCreatedAsync(
+        string toEmail,
+        string studentName,
+        string className,
+        string courseName,
+        string roomAddress,
+        decimal subtotalAmount,
+        decimal discountAmount,
+        decimal finalAmount,
+        CancellationToken cancellationToken = default);
+
+    Task SendPaymentConfirmedAsync(
+        string toEmail,
+        string studentName,
+        string className,
+        string courseName,
+        CancellationToken cancellationToken = default);
 }
