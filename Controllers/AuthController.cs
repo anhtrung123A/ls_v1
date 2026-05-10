@@ -54,6 +54,19 @@ public class AuthController : ControllerBase
         return Results.Ok(ApiResponse.Ok(response, "Login successfully."));
     }
 
+    [HttpPost("check-email")]
+    public async Task<IResult> CheckEmail([FromBody] CheckEmailRequest request, CancellationToken cancellationToken)
+    {
+        var email = request.Email.Trim().ToLowerInvariant();
+        var exists = await _dbContext.Users.AsNoTracking().AnyAsync(x => x.Email == email, cancellationToken);
+
+        return Results.Ok(ApiResponse.Ok(new
+        {
+            Email = email,
+            Exists = exists
+        }, "Check email successfully."));
+    }
+
     [HttpPost("refresh-token")]
     public async Task<IResult> RefreshToken([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
     {
