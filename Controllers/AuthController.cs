@@ -58,12 +58,16 @@ public class AuthController : ControllerBase
     public async Task<IResult> CheckEmail([FromBody] CheckEmailRequest request, CancellationToken cancellationToken)
     {
         var email = request.Email.Trim().ToLowerInvariant();
-        var exists = await _dbContext.Users.AsNoTracking().AnyAsync(x => x.Email == email, cancellationToken);
+        var user = await _dbContext.Users.AsNoTracking()
+            .Where(x => x.Email == email)
+            .Select(x => new { x.AvatarUrl })
+            .FirstOrDefaultAsync(cancellationToken);
 
         return Results.Ok(ApiResponse.Ok(new
         {
             Email = email,
-            Exists = exists
+            Exists = user is not null,
+            AvatarUrl = user?.AvatarUrl
         }, "Check email successfully."));
     }
 
