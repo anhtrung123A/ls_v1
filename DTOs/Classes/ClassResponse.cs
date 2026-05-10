@@ -13,6 +13,9 @@ public class ClassResponse
     public byte Type { get; init; }
     public byte Status { get; init; }
     public long? TeacherId { get; init; }
+    public string? TeacherFullName { get; init; }
+    public string? TeacherEmail { get; init; }
+    public string? TeacherAvatarUrl { get; init; }
     public long? CreatedBy { get; init; }
     public DateTime CreatedAt { get; init; }
 }

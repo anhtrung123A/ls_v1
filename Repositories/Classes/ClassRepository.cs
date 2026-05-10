@@ -24,12 +24,56 @@ public class ClassRepository : IClassRepository
         if (query.Type.HasValue) q = q.Where(x => x.Type == query.Type.Value);
         q = ApplyOrdering(q, query.OrderBy, query.OrderDir);
         var total = await q.LongCountAsync(cancellationToken);
-        var items = await q.Skip((query.Page - 1) * query.PageSize).Take(query.PageSize).Select(Map()).ToListAsync(cancellationToken);
+        var items = await q
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .Select(x => new ClassResponse
+            {
+                Id = x.Id,
+                CourseId = x.CourseId,
+                ClassCode = x.ClassCode,
+                Name = x.Name,
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+                MaxStudents = x.MaxStudents,
+                CurrentCount = x.CurrentCount,
+                Type = x.Type,
+                Status = x.Status,
+                TeacherId = x.TeacherId,
+                TeacherFullName = _db.Users.Where(u => u.Id == x.TeacherId).Select(u => u.FullName).FirstOrDefault(),
+                TeacherEmail = _db.Users.Where(u => u.Id == x.TeacherId).Select(u => u.Email).FirstOrDefault(),
+                TeacherAvatarUrl = _db.Users.Where(u => u.Id == x.TeacherId).Select(u => u.AvatarUrl).FirstOrDefault(),
+                CreatedBy = x.CreatedBy,
+                CreatedAt = x.CreatedAt
+            })
+            .ToListAsync(cancellationToken);
         return new PagedResponse<ClassResponse> { Items = items, Page = query.Page, PageSize = query.PageSize, TotalItems = total, TotalPages = (int)Math.Ceiling(total / (double)query.PageSize) };
     }
 
     public async Task<ClassResponse?> GetByIdAsync(long id, CancellationToken cancellationToken = default)
-        => await _db.Set<ClassEntity>().AsNoTracking().Where(x => x.Id == id).Select(Map()).FirstOrDefaultAsync(cancellationToken);
+        => await _db.Set<ClassEntity>()
+            .AsNoTracking()
+            .Where(x => x.Id == id)
+            .Select(x => new ClassResponse
+            {
+                Id = x.Id,
+                CourseId = x.CourseId,
+                ClassCode = x.ClassCode,
+                Name = x.Name,
+                StartDate = x.StartDate,
+                EndDate = x.EndDate,
+                MaxStudents = x.MaxStudents,
+                CurrentCount = x.CurrentCount,
+                Type = x.Type,
+                Status = x.Status,
+                TeacherId = x.TeacherId,
+                TeacherFullName = _db.Users.Where(u => u.Id == x.TeacherId).Select(u => u.FullName).FirstOrDefault(),
+                TeacherEmail = _db.Users.Where(u => u.Id == x.TeacherId).Select(u => u.Email).FirstOrDefault(),
+                TeacherAvatarUrl = _db.Users.Where(u => u.Id == x.TeacherId).Select(u => u.AvatarUrl).FirstOrDefault(),
+                CreatedBy = x.CreatedBy,
+                CreatedAt = x.CreatedAt
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
     public async Task<ClassResponse> CreateAsync(ClassRequest request, CancellationToken cancellationToken = default)
     {
@@ -176,23 +220,6 @@ public class ClassRepository : IClassRepository
             _ => asc ? q.OrderBy(x => x.CreatedAt) : q.OrderByDescending(x => x.CreatedAt)
         };
     }
-
-    private static System.Linq.Expressions.Expression<Func<ClassEntity, ClassResponse>> Map() => x => new ClassResponse
-    {
-        Id = x.Id,
-        CourseId = x.CourseId,
-        ClassCode = x.ClassCode,
-        Name = x.Name,
-        StartDate = x.StartDate,
-        EndDate = x.EndDate,
-        MaxStudents = x.MaxStudents,
-        CurrentCount = x.CurrentCount,
-        Type = x.Type,
-        Status = x.Status,
-        TeacherId = x.TeacherId,
-        CreatedBy = x.CreatedBy,
-        CreatedAt = x.CreatedAt
-    };
 
     private static byte ToDbWeekday(DayOfWeek dayOfWeek)
     {
