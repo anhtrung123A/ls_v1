@@ -97,14 +97,25 @@ public class StudentRepository : IStudentRepository
             classStudentsQuery = classStudentsQuery.Where(x => x.c.Status == query.Status.Value);
         }
 
-        var classOrderAsc = string.Equals(query.OrderDir, "asc", StringComparison.OrdinalIgnoreCase);
+        if (query.CourseId.HasValue)
+        {
+            classStudentsQuery = classStudentsQuery.Where(x => x.c.CourseId == query.CourseId.Value);
+        }
+
+        if (query.Type.HasValue)
+        {
+            classStudentsQuery = classStudentsQuery.Where(x => x.c.Type == query.Type.Value);
+        }
+
+        var classOrderAsc = !string.Equals(query.OrderDir, "desc", StringComparison.OrdinalIgnoreCase);
         var classOrderBy = query.OrderBy?.Trim().ToLowerInvariant();
         classStudentsQuery = classOrderBy switch
         {
-            "classname" or "class_name" => classOrderAsc ? classStudentsQuery.OrderBy(x => x.c.Name) : classStudentsQuery.OrderByDescending(x => x.c.Name),
-            "course" or "coursename" or "course_name" => classOrderAsc ? classStudentsQuery.OrderBy(x => x.co.Name) : classStudentsQuery.OrderByDescending(x => x.co.Name),
+            "classcode" or "class_code" => classOrderAsc ? classStudentsQuery.OrderBy(x => x.c.ClassCode) : classStudentsQuery.OrderByDescending(x => x.c.ClassCode),
+            "name" or "classname" or "class_name" => classOrderAsc ? classStudentsQuery.OrderBy(x => x.c.Name) : classStudentsQuery.OrderByDescending(x => x.c.Name),
             "startdate" or "start_date" => classOrderAsc ? classStudentsQuery.OrderBy(x => x.c.StartDate) : classStudentsQuery.OrderByDescending(x => x.c.StartDate),
-            _ => classOrderAsc ? classStudentsQuery.OrderBy(x => x.cs.JoinedAt) : classStudentsQuery.OrderByDescending(x => x.cs.JoinedAt)
+            "status" => classOrderAsc ? classStudentsQuery.OrderBy(x => x.c.Status) : classStudentsQuery.OrderByDescending(x => x.c.Status),
+            _ => classOrderAsc ? classStudentsQuery.OrderBy(x => x.c.CreatedAt) : classStudentsQuery.OrderByDescending(x => x.c.CreatedAt)
         };
 
         var totalItems = await classStudentsQuery.LongCountAsync(cancellationToken);
