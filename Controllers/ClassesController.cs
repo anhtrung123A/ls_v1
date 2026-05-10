@@ -31,7 +31,7 @@ public class ClassesController : ControllerBase
     [HttpGet("{id:long}")]
     public async Task<IResult> Detail(long id, CancellationToken cancellationToken)
     {
-        await EnsureClassPermissionAsync(cancellationToken);
+        await EnsureClassDetailPermissionAsync(id, cancellationToken);
         var result = await _repo.GetByIdAsync(id, cancellationToken);
         if (result is null) throw new KeyNotFoundException("Class not found.");
         return Results.Ok(ApiResponse.Ok(result, "Get class successfully."));
@@ -89,6 +89,66 @@ public class ClassesController : ControllerBase
 
         var dep = await GetDepartmentAsync(cancellationToken);
         if (dep != 2 && dep != 3) throw new UnauthorizedAccessException("Only admin, academic or operation can manage classes.");
+    }
+
+    private async Task EnsureClassDetailPermissionAsync(long classId, CancellationToken cancellationToken)
+    {
+        var role = User.FindFirst("role")?.Value;
+        if (role == "1")
+        {
+            return;
+        }
+
+        var userId = GetCurrentUserId();
+
+        if (role == "2")
+        {
+            var dep = await _db.Staff
+                .AsNoTracking()
+                .Where(x => x.UserId == userId)
+                .Select(x => x.Department)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (dep == 2 || dep == 3)
+            {
+                return;
+            }
+
+            throw new UnauthorizedAccessException("You do not have permission to view this class.");
+        }
+
+        if (role == "3")
+        {
+            var canView = await _db.Classes
+                .AsNoTracking()
+                .AnyAsync(x => x.Id == classId && x.TeacherId == userId, cancellationToken);
+
+            if (!canView) throw new UnauthorizedAccessException("Teacher can only view their own classes.");
+            return;
+        }
+
+        if (role == "4")
+        {
+            var studentId = await _db.Students
+                .AsNoTracking()
+                .Where(x => x.UserId == userId)
+                .Select(x => (long?)x.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (!studentId.HasValue)
+            {
+                throw new UnauthorizedAccessException("Student profile not found.");
+            }
+
+            var canView = await _db.ClassStudents
+                .AsNoTracking()
+                .AnyAsync(x => x.ClassId == classId && x.StudentId == studentId.Value, cancellationToken);
+
+            if (!canView) throw new UnauthorizedAccessException("Student can only view classes they joined.");
+            return;
+        }
+
+        throw new UnauthorizedAccessException("You do not have permission to view this class.");
     }
 
     private async Task<byte?> GetDepartmentAsync(CancellationToken cancellationToken)
